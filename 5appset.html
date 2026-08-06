@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    //真服了github的土豆服务器
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>编辑管理 - 五班应用平台</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { background: #f0f2f5; font-family: system-ui, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif; min-height: 100vh; padding-bottom: 40px; color: #1f2937; }
+
+        .top-bar { background: #1e3c72; color: white; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; flex-wrap: wrap; gap: 8px; }
+        .top-bar h2 { font-size: 1.2rem; font-weight: 600; }
+        .top-bar .btn-group { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+        .top-bar button { background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; white-space: nowrap; }
+        .top-bar button:active { background: rgba(255,255,255,0.35); }
+        .top-bar .save-main { background: #27ae60; }
+        .top-bar .save-main:active { background: #219a52; }
+
+        .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1e3c72; z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        .login-box { background: white; border-radius: 16px; padding: 28px 24px; width: 90%; max-width: 400px; text-align: center; }
+        .login-box h3 { margin-bottom: 8px; color: #1e3c72; }
+        .login-box p { font-size: 0.8rem; color: #6b7280; margin-bottom: 20px; }
+        .login-box input[type="password"] { width: 100%; padding: 12px; border: 1px solid #d0d5dd; border-radius: 8px; font-size: 0.9rem; margin-bottom: 12px; }
+        .login-box .remember-row { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #4b5563; margin-bottom: 16px; justify-content: center; }
+        .login-box button { width: 100%; padding: 12px; background: #2b4c8a; color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; }
+        .login-box button:active { background: #1e3c72; }
+        .login-error { color: #e74c3c; font-size: 0.8rem; margin-top: 8px; display: none; }
+
+        .main-content { max-width: 900px; margin: 0 auto; padding: 16px; display: none; }
+
+        .section { background: white; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+        .section-title { font-size: 1rem; font-weight: 600; color: #1e3c72; }
+
+        .group-list { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .group-item { display: flex; align-items: center; gap: 4px; background: #f0f2f5; border-radius: 8px; padding: 6px 8px; user-select: none; }
+        .group-item .group-name { font-size: 0.9rem; font-weight: 500; color: #1f2937; min-width: 40px; text-align: center; }
+        .group-item .arrow-btn { background: none; border: none; color: #6b7280; cursor: pointer; font-size: 0.85rem; padding: 2px 4px; border-radius: 4px; line-height: 1; }
+        .group-item .arrow-btn:hover { background: #e5e7eb; color: #1f2937; }
+        .group-item .arrow-btn:disabled { color: #d0d5dd; cursor: default; background: none; }
+        .group-item .del-group-btn { background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 1rem; padding: 2px 5px; border-radius: 4px; margin-left: 2px; }
+        .group-item .del-group-btn:hover { background: #fde8e8; }
+        .group-actions { display: flex; gap: 6px; margin-left: 4px; }
+        .group-actions button { background: #2b4c8a; color: white; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; }
+        .group-actions button:active { background: #1e3c72; }
+
+        .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 720px; }
+        th, td { padding: 10px 6px; text-align: left; border-bottom: 1px solid #f0f2f5; white-space: nowrap; }
+        th { color: #6b7280; font-weight: 500; font-size: 0.78rem; }
+        td .arrow-btn { background: none; border: none; color: #6b7280; cursor: pointer; font-size: 0.8rem; padding: 2px 3px; border-radius: 3px; line-height: 1; display: inline-block; }
+        td .arrow-btn:hover { background: #e5e7eb; color: #1f2937; }
+        td .arrow-btn:disabled { color: #d0d5dd; cursor: default; background: none; }
+        td .btn-sm { background: #f0f2f5; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; margin-right: 3px; white-space: nowrap; }
+        td .btn-sm:active { background: #e5e7eb; }
+        td .btn-del { color: #e74c3c; background: #fef2f2; }
+        td .btn-del:active { background: #fde8e8; }
+        td select { padding: 5px 8px; border: 1px solid #d0d5dd; border-radius: 6px; font-size: 0.8rem; background: white; max-width: 130px; }
+        td .link-preview { max-width: 180px; overflow: hidden; text-overflow: ellipsis; display: inline-block; vertical-align: middle; color: #4b5563; }
+
+        .upload-area { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .upload-area button { background: #f39c12; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+        .upload-area button:active { background: #d68910; }
+        .upload-status { font-size: 0.8rem; color: #6b7280; margin-left: 8px; }
+        .upload-status.loading { color: #f39c12; }
+        .upload-status.success { color: #27ae60; }
+        .upload-status.error { color: #e74c3c; }
+
+        .notify-item-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f2f5; gap: 8px; flex-wrap: wrap; }
+        .notify-item-row .notify-info { flex: 1; min-width: 0; }
+        .notify-item-row .notify-time { font-size: 0.75rem; color: #94a3b8; }
+        .notify-item-row .notify-text-preview { font-size: 0.85rem; color: #1f2937; word-break: break-word; }
+        .notify-item-row .notify-link-preview { font-size: 0.75rem; color: #6b7280; word-break: break-all; }
+        .notify-item-row .btn-sm { flex-shrink: 0; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; display: flex; align-items: center; justify-content: center; visibility: hidden; opacity: 0; transition: all 0.2s; }
+        .modal-overlay.show { visibility: visible; opacity: 1; }
+        .modal-content { background: white; border-radius: 16px; padding: 20px; width: 90%; max-width: 420px; max-height: 85vh; overflow-y: auto; }
+        .modal-content h3 { margin-bottom: 16px; color: #1e3c72; }
+        .modal-content label { display: block; font-size: 0.85rem; color: #4b5563; margin-top: 8px; margin-bottom: 4px; }
+        .modal-content input, .modal-content select, .modal-content textarea { width: 100%; padding: 10px; margin-bottom: 4px; border: 1px solid #d0d5dd; border-radius: 8px; font-size: 0.9rem; }
+        .modal-content textarea { resize: vertical; min-height: 60px; font-family: inherit; }
+        .modal-content .readonly-field { background: #f0f2f5; color: #6b7280; cursor: pointer; }
+        .modal-content .readonly-field:focus { outline: 2px solid #2b4c8a; }
+        .modal-buttons { display: flex; gap: 10px; margin-top: 16px; }
+        .modal-buttons button { flex: 1; padding: 10px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.9rem; }
+        .btn-confirm { background: #2b4c8a; color: white; }
+        .btn-confirm:active { background: #1e3c72; }
+        .btn-confirm:disabled { background: #94a3b8; cursor: not-allowed; }
+        .btn-cancel { background: #e5e7eb; color: #1f2937; }
+        .btn-cancel:active { background: #d0d5dd; }
+
+        .mode-switch { display: flex; gap: 0; margin-bottom: 12px; border-radius: 8px; overflow: hidden; border: 1px solid #d0d5dd; }
+        .mode-switch button { flex: 1; padding: 10px; border: none; background: #f0f2f5; color: #6b7280; cursor: pointer; font-size: 0.85rem; transition: all 0.15s; }
+        .mode-switch button.active { background: #2b4c8a; color: white; font-weight: 600; }
+
+        .upload-file-area { display: flex; align-items: center; gap: 8px; padding: 8px 0; flex-wrap: wrap; }
+        .upload-file-area button { background: #f39c12; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; white-space: nowrap; }
+        .upload-file-area button:disabled { background: #d0d5dd; cursor: not-allowed; }
+        .upload-file-area .file-name { font-size: 0.85rem; color: #1f2937; flex: 1; word-break: break-all; min-width: 100px; }
+        .upload-file-area .file-status { font-size: 0.75rem; }
+        .upload-file-area .file-status.loading { color: #f39c12; }
+        .upload-file-area .file-status.success { color: #27ae60; }
+        .upload-file-area .file-status.error { color: #e74c3c; }
+        .upload-file-area .file-delete-btn { background: #e74c3c; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; white-space: nowrap; }
+
+        .toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); background: rgba(0,0,0,0.85); color: white; padding: 12px 24px; border-radius: 30px; z-index: 30000; font-size: 0.9rem; pointer-events: none; animation: fadeInOut 2s ease; }
+        @keyframes fadeInOut { 0%{opacity:0;} 15%{opacity:1;} 85%{opacity:1;} 100%{opacity:0;} }
+
+        @media (max-width: 768px) {
+            .top-bar { padding: 10px 14px; }
+            .top-bar h2 { font-size: 1rem; }
+            .top-bar button { padding: 6px 10px; font-size: 0.78rem; }
+            th, td { padding: 8px 4px; font-size: 0.75rem; }
+            td .btn-sm { padding: 4px 7px; font-size: 0.7rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-box">
+            <h3>验证身份</h3>
+            <p>请输入访问密钥进入编辑</p>
+            <input type="password" id="tokenInput" placeholder="请输入密钥..." autocomplete="off">
+            <div class="remember-row">
+                <input type="checkbox" id="rememberToken">
+                <label for="rememberToken">记住密钥（下次自动填充）</label>
+            </div>
+            <button id="loginBtn">验证并进入</button>
+            <div class="login-error" id="loginError">密钥无效，请重试</div>
+        </div>
+    </div>
+
+    <div class="main-content" id="mainContent">
+        <div class="top-bar">
+            <h2>编辑管理</h2>
+            <div class="btn-group">
+                <button id="uploadBtn">上传文件</button>
+                <span class="upload-status" id="uploadStatus"></span>
+                <button class="save-main" id="saveBtn">保存配置</button>
+                <button id="logoutBtn">退出</button>
+            </div>
+        </div>
+
+        <div class="section" id="groupSection">
+            <div class="section-header"><span class="section-title">分组列表</span><div class="group-actions"><button id="addGroupBtn" title="添加分组">+</button></div></div>
+            <div class="group-list" id="groupList"></div>
+        </div>
+
+        <div class="section" id="carouselSection">
+            <div class="section-header"><span class="section-title">轮播图列表</span><button class="btn-sm" id="addCarouselBtn" style="background:#3498db;color:white;">+ 添加轮播图</button></div>
+            <div class="table-wrap"><table><thead><tr><th style="width:50px;">排序</th><th>图片链接</th><th style="width:60px;">修改</th><th>跳转链接</th><th style="width:60px;">修改</th><th style="width:50px;">删除</th></tr></thead><tbody id="carouselTbody"></tbody></table></div>
+        </div>
+
+        <div class="section" id="appSection">
+            <div class="section-header"><span class="section-title">应用列表</span><button class="btn-sm" id="addAppBtn" style="background:#27ae60;color:white;">+ 添加应用</button></div>
+            <div class="table-wrap"><table><thead><tr><th style="width:50px;">排序</th><th>应用名称</th><th style="width:60px;">修改名称</th><th style="width:60px;">修改链接</th><th style="width:60px;">修改图标</th><th style="width:50px;">删除</th><th>所属分组</th></tr></thead><tbody id="appTbody"></tbody></table></div>
+        </div>
+
+        <div class="section" id="notifySection">
+            <div class="section-header"><span class="section-title">通知管理</span><button class="btn-sm" id="addNotifyBtn" style="background:#e74c3c;color:white;">+ 发布通知</button></div>
+            <div id="notifyListContainer"><div style="text-align:center;color:#999;padding:20px;">加载中...</div></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="textModal">
+        <div class="modal-content"><h3 id="textModalTitle">修改</h3><input type="text" id="textModalInput" placeholder="请输入"><div class="modal-buttons"><button class="btn-cancel" id="textModalCancel">取消</button><button class="btn-confirm" id="textModalConfirm">确定</button></div></div>
+    </div>
+
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal-content"><h3 id="confirmModalTitle">确认删除</h3><p id="confirmModalText" style="color:#6b7280;font-size:0.9rem;"></p><div class="modal-buttons"><button class="btn-cancel" id="confirmModalCancel">取消</button><button class="btn-confirm" id="confirmModalConfirm" style="background:#e74c3c;">删除</button></div></div>
+    </div>
+
+    <script>
+        var GITHUB_OWNER = 'bloxorz671';
+        var GITHUB_REPO = '1205';
+        var GITHUB_PATH = '5app.txt';
+        var NOTIFY_PATH = 'fiveapppush.txt';
+        var UPLOAD_FOLDER = 'fiveappfile/';
+        var BASE_URL = 'https://class.luckynum.top/';
+
+        var currentToken = null;
+        var fileSha = null;
+        var notifySha = null;
+        var groupOrder = ['其他应用'];
+        var slidesData = [];
+        var appItems = [];
+        var notifyList = [];
+
+        var AUDIO_EXTS = ['mp3','m4a','wav','flac','aac','ogg','wma','opus'];
+        var VIDEO_EXTS = ['mp4','webm','mov','avi','mkv','flv','wmv'];
+        var IMAGE_EXTS = ['jpg','jpeg','png','gif','bmp','webp','svg','ico'];
+
+        function getAutoIcon(linkUrl) {
+            if(!linkUrl) return 'null.jpg';
+            var clean=linkUrl.split('?')[0].split('#')[0];
+            var fn=clean.split('/').pop();
+            if(!fn) return 'null.jpg';
+            var dotIdx=fn.lastIndexOf('.');
+            if(dotIdx===-1) return 'null.jpg';
+            var ext=fn.substring(dotIdx+1).toLowerCase();
+            if(ext==='pdf') return 'pdf.jpg';
+            if(ext==='ppt'||ext==='pptx') return 'ppt.jpg';
+            if(ext==='doc'||ext==='docx') return 'word.jpg';
+            if(ext==='xls'||ext==='xlsx') return 'excel.jpg';
+            if(AUDIO_EXTS.indexOf(ext)!==-1) return 'audio.jpg';
+            if(VIDEO_EXTS.indexOf(ext)!==-1) return 'video.jpg';
+            if(IMAGE_EXTS.indexOf(ext)!==-1) return linkUrl;
+            return 'null.jpg';
+        }
+
+        function escapeHtml(str) { if(!str) return ''; return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+        function showToast(msg) { var t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(function(){t.remove();},2100); }
+
+        function showTextModal(title,currentValue,callback,onBlurCallback) {
+            var modal=document.getElementById('textModal');
+            document.getElementById('textModalTitle').textContent=title;
+            var input=document.getElementById('textModalInput');
+            input.value=currentValue||''; modal.classList.add('show'); input.focus();
+            function cleanup(){ modal.classList.remove('show'); document.getElementById('textModalConfirm').removeEventListener('click',onConfirm); document.getElementById('textModalCancel').removeEventListener('click',onCancel); modal.removeEventListener('click',onOverlay); input.removeEventListener('blur',onBlur); }
+            function onConfirm(){ var val=input.value.trim(); cleanup(); if(callback) callback(val); }
+            function onCancel(){ cleanup(); }
+            function onOverlay(e){ if(e.target===modal) cleanup(); }
+            function onBlur(){ if(onBlurCallback) onBlurCallback(input.value.trim()); }
+            document.getElementById('textModalConfirm').addEventListener('click',onConfirm);
+            document.getElementById('textModalCancel').addEventListener('click',onCancel);
+            modal.addEventListener('click',onOverlay);
+            if(onBlurCallback) input.addEventListener('blur',onBlur);
+        }
+
+        function showConfirmModal(title,text,callback) {
+            var modal=document.getElementById('confirmModal');
+            document.getElementById('confirmModalTitle').textContent=title;
+            document.getElementById('confirmModalText').textContent=text;
+            modal.classList.add('show');
+            function cleanup(){ modal.classList.remove('show'); document.getElementById('confirmModalConfirm').removeEventListener('click',onConfirm); document.getElementById('confirmModalCancel').removeEventListener('click',onCancel); modal.removeEventListener('click',onOverlay); }
+            function onConfirm(){ cleanup(); if(callback) callback(true); }
+            function onCancel(){ cleanup(); if(callback) callback(false); }
+            function onOverlay(e){ if(e.target===modal){ cleanup(); if(callback) callback(false); } }
+            document.getElementById('confirmModalConfirm').addEventListener('click',onConfirm);
+            document.getElementById('confirmModalCancel').addEventListener('click',onCancel);
+            modal.addEventListener('click',onOverlay);
+        }
+
+        function showUploadResultModal(fileName, fullUrl) {
+            var overlay=document.createElement('div'); overlay.className='modal-overlay show'; overlay.style.zIndex='3000';
+            overlay.innerHTML='<div class="modal-content"><h3>上传完成</h3>'+
+                '<label>文件名</label><input class="readonly-field" value="'+escapeHtml(fileName)+'" readonly onclick="this.select();document.execCommand(\'copy\');showToast(\'已复制文件名\');">'+
+                '<label>相对路径</label><input class="readonly-field" value="'+escapeHtml(fullUrl)+'" readonly onclick="this.select();document.execCommand(\'copy\');showToast(\'已复制路径\');">'+
+                '<label>完整链接</label><input class="readonly-field" value="'+escapeHtml(BASE_URL+fullUrl)+'" readonly onclick="this.select();document.execCommand(\'copy\');showToast(\'已复制完整链接\');">'+
+                '<div class="modal-buttons"><button class="btn-confirm" id="uploadResultClose">关闭</button></div></div>';
+            document.body.appendChild(overlay);
+            overlay.querySelector('#uploadResultClose').addEventListener('click',function(){ overlay.remove(); });
+            overlay.addEventListener('click',function(e){ if(e.target===overlay) overlay.remove(); });
+        }
+
+        function parseAppTxt(raw) {
+            var lines=raw.split(/\r?\n/); var mode=null; groupOrder=[]; slidesData=[]; appItems=[];
+            lines.forEach(function(line){ line=line.trim(); if(!line) return;
+                if(line.toLowerCase()==='group'){mode='group';return;} if(line.toLowerCase()==='pic'){mode='pic';return;} if(line.toLowerCase()==='app'){mode='app';return;}
+                if(mode==='group'){var m=line.match(/\[g=([^\]]+)\]/);if(m) groupOrder.push(m[1].trim());}
+                else if(mode==='pic'){var m=line.match(/\[p=([^\s\]]+)\s+l=([^\s\]]+)\]/);if(m) slidesData.push({imgUrl:m[1].trim(),linkUrl:m[2].trim()});}
+                else if(mode==='app'){var m=line.match(/\[n=([^\s\]]+)\s+p=([^\s\]]+)\s+l=([^\s\]]+)(?:\s+g=([^\s\]]+))?\]/);if(!m) m=line.match(/\[n=(.+?)\s+p=(.+?)\s+l=(.+?)(?:\s+g=(.+?))?\]/);if(m) appItems.push({name:m[1].trim(),icon:m[2].trim(),link:m[3].trim(),group:m[4]?m[4].trim():null});}
+            });
+            if(groupOrder.length===0) groupOrder=['其他应用'];
+        }
+
+        function parseNotifyTxt(raw) {
+            notifyList=[]; var lines=raw.split(/\r?\n/);
+            lines.forEach(function(line){ line=line.trim(); if(!line) return;
+                var m=line.match(/^(\d{12})\s+(.+?)\s+(https?:\/\/\S+)$/);
+                if(m) notifyList.push({ id:m[1], content:m[2], link:m[3], raw:line });
+            });
+            notifyList.sort(function(a,b){ return b.id.localeCompare(a.id); });
+        }
+
+        function generateFileContent() {
+            var c='group\n'; for(var i=0;i<groupOrder.length;i++) c+='[g='+groupOrder[i]+']\n';
+            c+='pic\n'; for(var i=0;i<slidesData.length;i++) c+='[p='+slidesData[i].imgUrl+' l='+slidesData[i].linkUrl+']\n';
+            c+='app\n'; for(var i=0;i<appItems.length;i++){ var a=appItems[i]; c+='[n='+a.name+' p='+a.icon+' l='+a.link; if(a.group&&a.group!=='其他应用') c+=' g='+a.group; c+=']\n'; }
+            return c;
+        }
+
+        function generateNotifyContent() { return notifyList.map(function(item){ return item.raw; }).join('\n'); }
+
+        async function loadRemoteConfig() {
+            var url='https://raw.githubusercontent.com/'+GITHUB_OWNER+'/'+GITHUB_REPO+'/main/'+GITHUB_PATH+'?t='+Date.now();
+            var r=await fetch(url); if(!r.ok) throw new Error('加载配置失败'); parseAppTxt(await r.text());
+        }
+
+        async function loadRemoteNotify() {
+            try{ var url='https://raw.githubusercontent.com/'+GITHUB_OWNER+'/'+GITHUB_REPO+'/main/'+NOTIFY_PATH+'?t='+Date.now();
+                var r=await fetch(url); if(r.ok) parseNotifyTxt(await r.text()); else notifyList=[];
+            }catch(e){ notifyList=[]; }
+        }
+
+        async function fetchSha(path) {
+            var r=await fetch('https://api.github.com/repos/'+GITHUB_OWNER+'/'+GITHUB_REPO+'/contents/'+path,{headers:{'Authorization':'Bearer '+currentToken}});
+            if(r.ok) return (await r.json()).sha; return null;
+        }
+
+        async function saveToGitHub() {
+            var content=generateFileContent(); if(!fileSha) fileSha=await fetchSha(GITHUB_PATH);
+            var body={message:'更新配置',content:btoa(unescape(encodeURIComponent(content))),branch:'main'};
+            if(fileSha) body.sha=fileSha;
+            var r=await fetch('https://api.github.com/repos/'+GITHUB_OWNER+'/'+GITHUB_REPO+'/contents/'+GITHUB_PATH,{method:'PUT',headers:{'Authorization':'Bearer '+currentToken},body:JSON.stringify(body)});
+            if(!r.ok){ var err=await r.json().catch(function(){return{};}); throw new Error(err.message||'保存失败'); }
+            fileSha=(await r.json()).content.sha;
+        }
+
+        async function saveNotifyToGitHub() {
+            var content=generateNotifyContent(); if(!notifySha) notifySha=await fetchSha(NOTIFY_PATH);
+            var body={message:'更新通知',content:btoa(unescape(encodeURIComponent(content))),branch:'main'};
+            if(notifySha) body.sha=notifySha;
+            var r=await fetch('https://api.github.com/repos/'+GITHUB_OWNER+'/'+GITHUB_REPO+'/contents/'+NOTIFY_PATH,{method:'PUT',headers:{'Authorization':'Bearer '+currentToken},body:JSON.stringify(body)});
+            if(!r.ok){ var err=await r.json().catch(function(){return{};}); throw new Error(err.message||'保存失败'); }
+            notifySha=(await r.json()).content.sha;
+        }
+
+        async function checkFileExists(fullPath) {
+            try{ var r=await fetch('https://api.github.com/repos/'+GITHUB_OWNER+'/'+GITHUB_REPO+'/contents/'+encodeURIComponent(fullPath),{headers:{'Authorization':'Bearer '+currentToken}});
+                return r.ok;
+            }catch(e){ return false; }
+        }
+
+        async function deleteFileByPath(fullPath) {
+            try{
+                var cr=await fetch('https://api.github.com/repos/'+GITHUB_OWNER+'/'+GITHUB_REPO+'/contents/'+encodeURIComponent(fullPath),{headers:{'Authorization':'Bearer '+currentToken}});
+                if(!cr.ok) return;
+                var d=await cr.json();
+                await fetch('https://api.github.com/repos/'+GITHUB_OWNER+'/'+GITHUB_REPO+'/contents/'+encodeURIComponent(fullPath),{method:'DELETE',headers:{'Authorization':'Bearer '+currentToken},body:JSON.stringify({message:'删除 '+fullPath,sha:d.sha,branch:'main'})});
+            }catch(e){}
+        }
+
+        async function uploadFileDirect(file) {
+            var fn=UPLOAD_FOLDER+file.name;
+            var reader=new FileReader();
+            var base64=await new Promise(function(resolve){ reader.onload=function(e){ resolve(e.target.result.split(',')[1]); }; reader.readAsDataURL(file); });
+            var r=await fetch('https://api.github.com/repos/'+GITHUB_OWNER+'/'+GITHUB_REPO+'/contents/'+encodeURIComponent(fn),{method:'PUT',headers:{'Authorization':'Bearer '+currentToken},body:JSON.stringify({message:'上传 '+fn,content:base64,branch:'main'})});
+            if(!r.ok) throw new Error('上传失败');
+            return fn;
+        }
+
+        function getCopyFileName(fn) {
+            var dotIdx=fn.lastIndexOf('.'); var name,ext;
+            if(dotIdx===-1){ name=fn; ext=''; } else { name=fn.substring(0,dotIdx); ext=fn.substring(dotIdx); }
+            var match=name.match(/_(\d+)$/);
+            if(match){ var num=parseInt(match[1])+1; name=name.replace(/_\d+$/,'_'+num); }
+            else { name=name+'_1'; }
+            return name+ext;
+        }
+
+        function looksLikeFilePath(str) {
+            if(!str) return false;
+            if(/^https?:\/\//i.test(str)) return false;
+            if(/^[a-zA-Z0-9_\-\.\/]+$/.test(str) && str.indexOf('.')!==-1) return true;
+            return false;
+        }
+
+        function smartResolveLink(inputVal) {
+            if(!inputVal) return inputVal;
+            if(/^https?:\/\//i.test(inputVal)) return inputVal;
+            if(looksLikeFilePath(inputVal)) {
+                if(inputVal.indexOf(UPLOAD_FOLDER)===0) return inputVal;
+                return UPLOAD_FOLDER+inputVal;
+            }
+            if(!/^https?:\/\//i.test(inputVal) && inputVal.indexOf('.')!==-1) return UPLOAD_FOLDER+inputVal;
+            if(!/^https?:\/\//i.test(inputVal)) return 'https://'+inputVal;
+            return inputVal;
+        }
+
+        function renderGroups() {
+            var container=document.getElementById('groupList'); var html='';
+            for(var i=0;i<groupOrder.length;i++){ var gn=groupOrder[i];
+                html+='<div class="group-item" data-index="'+i+'"><button class="arrow-btn move-left" data-index="'+i+'" '+(i===0?'disabled':'')+' title="左移">◀</button><span class="group-name">'+escapeHtml(gn)+'</span><button class="arrow-btn move-right" data-index="'+i+'" '+(i===groupOrder.length-1?'disabled':'')+' title="右移">▶</button><button class="del-group-btn" data-group="'+escapeHtml(gn)+'" title="删除分组">×</button></div>';
+            }
+            container.innerHTML=html;
+            container.querySelectorAll('.move-left').forEach(function(btn){ btn.addEventListener('click',function(){ var idx=parseInt(btn.dataset.index); if(idx>0){ var tmp=groupOrder[idx]; groupOrder[idx]=groupOrder[idx-1]; groupOrder[idx-1]=tmp; renderGroups(); renderApps(); } }); });
+            container.querySelectorAll('.move-right').forEach(function(btn){ btn.addEventListener('click',function(){ var idx=parseInt(btn.dataset.index); if(idx<groupOrder.length-1){ var tmp=groupOrder[idx]; groupOrder[idx]=groupOrder[idx+1]; groupOrder[idx+1]=tmp; renderGroups(); renderApps(); } }); });
+            container.querySelectorAll('.del-group-btn').forEach(function(btn){ btn.addEventListener('click',function(e){ e.stopPropagation(); var gn=btn.dataset.group; showConfirmModal('删除分组','确定删除分组"'+gn+'"吗？该分组下的应用将移至"其他应用"。',function(ok){ if(!ok) return; var idx=groupOrder.indexOf(gn); if(idx!==-1) groupOrder.splice(idx,1); if(groupOrder.length===0) groupOrder=['其他应用']; appItems.forEach(function(a){ if(a.group===gn) a.group=null; }); renderGroups(); renderApps(); }); }); });
+        }
+
+        function renderCarousels() {
+            var tbody=document.getElementById('carouselTbody'); var html='';
+            for(var i=0;i<slidesData.length;i++){ var s=slidesData[i];
+                html+='<tr data-index="'+i+'"><td><button class="arrow-btn move-up" data-index="'+i+'" '+(i===0?'disabled':'')+' title="上移">↑</button> <button class="arrow-btn move-down" data-index="'+i+'" '+(i===slidesData.length-1?'disabled':'')+' title="下移">↓</button></td>';
+                html+='<td><span class="link-preview" title="'+escapeHtml(s.imgUrl)+'">'+escapeHtml(s.imgUrl)+'</span></td><td><button class="btn-sm edit-img-link" data-index="'+i+'">修改</button></td>';
+                html+='<td><span class="link-preview" title="'+escapeHtml(s.linkUrl)+'">'+escapeHtml(s.linkUrl)+'</span></td><td><button class="btn-sm edit-jump-link" data-index="'+i+'">修改</button></td>';
+                html+='<td><button class="btn-sm btn-del del-carousel" data-index="'+i+'">删除</button></td></tr>';
+            }
+            tbody.innerHTML=html;
+            tbody.querySelectorAll('.move-up').forEach(function(btn){ btn.addEventListener('click',function(){ var idx=parseInt(btn.dataset.index); if(idx>0){ var tmp=slidesData[idx]; slidesData[idx]=slidesData[idx-1]; slidesData[idx-1]=tmp; renderCarousels(); } }); });
+            tbody.querySelectorAll('.move-down').forEach(function(btn){ btn.addEventListener('click',function(){ var idx=parseInt(btn.dataset.index); if(idx<slidesData.length-1){ var tmp=slidesData[idx]; slidesData[idx]=slidesData[idx+1]; slidesData[idx+1]=tmp; renderCarousels(); } }); });
+            tbody.querySelectorAll('.edit-img-link').forEach(function(btn){ btn.addEventListener('click',function(){ var idx=parseInt(btn.dataset.index); showTextModal('修改图片链接',slidesData[idx].imgUrl,function(val){ if(val){ slidesData[idx].imgUrl=val; renderCarousels(); } }); }); });
+            tbody.querySelectorAll('.edit-jump-link').forEach(function(btn){ btn.addEventListener('click',function(){ var idx=parseInt(btn.dataset.index); showTextModal('修改跳转链接',slidesData[idx].linkUrl,function(val){ if(val!==null&&val!==undefined){ slidesData[idx].linkUrl=val; renderCarousels(); } }); }); });
+            tbody.querySelectorAll('.del-carousel').forEach(function(btn){ btn.addEventListener('click',function(){ var idx=parseInt(btn.dataset.index); showConfirmModal('删除轮播图','确定删除这张轮播图吗？',function(ok){ if(!ok) return; slidesData.splice(idx,1); renderCarousels(); }); }); });
+        }
+
+        function renderApps() {
+            var tbody=document.getElementById('appTbody'); var html='';
+            for(var i=0;i<appItems.length;i++){ var a=appItems[i]; var currentGroup=a.group||'其他应用'; if(groupOrder.indexOf(currentGroup)===-1) currentGroup='其他应用';
+                html+='<tr data-index="'+i+'"><td><button class="arrow-btn move-up" data-index="'+i+'" '+(i===0?'disabled':'')+' title="上移">↑</button> <button class="arrow-btn move-down" data-index="'+i+'" '+(i===appItems.length-1?'disabled':'')+' title="下移">↓</button></td>';
+                html+='<td>'+escapeHtml(a.name)+'</td><td><button class="btn-sm edit-name" data-index="'+i+'">修改</button></td>';
+                html+='<td><button class="btn-sm edit-link" data-index="'+i+'">修改</button></td><td><button class="btn-sm edit-icon" data-index="'+i+'">修改</button></td>';
+                html+='<td><button class="btn-sm btn-del del-app" data-index="'+i+'">删除</button></td><td><select class="app-group-select" data-index="'+i+'">';
+                for(var g2=0;g2<groupOrder.length;g2++){ html+='<option value="'+escapeHtml(groupOrder[g2])+'"'+(groupOrder[g2]===currentGroup?' selected':'')+'>'+escapeHtml(groupOrder[g2])+'</option>'; }
+                if(groupOrder.indexOf(currentGroup)===-1&&currentGroup!=='其他应用'){ html+='<option value="'+escapeHtml(currentGroup)+'" selected>暂无分组</option>'; }
+                html+='</select></td></tr>';
+            }
+            tbody.innerHTML=html;
+            tbody.querySelectorAll('.move-up').forEach(function(btn){ btn.addEventListener('click',function(){ var idx=parseInt(btn.dataset.index); if(idx>0){ var tmp=appItems[idx]; appItems[idx]=appItems[idx-1]; appItems[idx-1]=tmp; renderApps(); } }); });
+            tbody.querySelectorAll('.move-down').forEach(function(btn){ btn.addEventListener('click',function(){ var idx=parseInt(btn.dataset.index); if(idx<appItems.length-1){ var tmp=appItems[idx]; appItems[idx]=appItems[idx+1]; appItems[idx+1]=tmp; renderApps(); } }); });
+            tbody.querySelectorAll('.edit-name').forEach(function(btn){ btn.addEventListener('click',function(){ var idx=parseInt(btn.dataset.index); showTextModal('修改应用名称',appItems[idx].name,function(val){ if(val){ appItems[idx].name=val; renderApps(); } }); }); });
+            tbody.querySelectorAll('.edit-link').forEach(function(btn){ btn.addEventListener('click',function(){ var idx=parseInt(btn.dataset.index); showTextModal('修改跳转链接',appItems[idx].link,function(val){ if(val!==null&&val!==undefined){ appItems[idx].link=val; appItems[idx].icon=getAutoIcon(val); renderApps(); } }); }); });
+            tbody.querySelectorAll('.edit-icon').forEach(function(btn){ btn.addEventListener('click',function(){ var idx=parseInt(btn.dataset.index); showTextModal('修改图标链接',appItems[idx].icon,function(val){ if(val!==null&&val!==undefined){ appItems[idx].icon=val; renderApps(); } }); }); });
+            tbody.querySelectorAll('.del-app').forEach(function(btn){ btn.addEventListener('click',function(){ var idx=parseInt(btn.dataset.index); showConfirmModal('删除应用','确定删除应用"'+appItems[idx].name+'"吗？',function(ok){ if(!ok) return; appItems.splice(idx,1); renderApps(); }); }); });
+            tbody.querySelectorAll('.app-group-select').forEach(function(sel){ sel.addEventListener('change',function(){ var idx=parseInt(sel.dataset.index); appItems[idx].group=sel.value; }); });
+        }
+
+        function renderNotifyListUI() {
+            var container=document.getElementById('notifyListContainer');
+            if(notifyList.length===0){ container.innerHTML='<div style="text-align:center;color:#999;padding:20px;">暂无通知</div>'; return; }
+            var html='';
+            notifyList.forEach(function(item){
+                var timeStr=item.id.substring(0,4)+'-'+item.id.substring(4,6)+'-'+item.id.substring(6,8)+' '+item.id.substring(8,10)+':'+item.id.substring(10,12);
+                html+='<div class="notify-item-row"><div class="notify-info"><div class="notify-time">'+timeStr+'</div><div class="notify-text-preview">'+escapeHtml(item.content)+'</div><div class="notify-link-preview">'+escapeHtml(item.link)+'</div></div><button class="btn-sm btn-del" data-id="'+item.id+'">删除</button></div>';
+            });
+            container.innerHTML=html;
+            container.querySelectorAll('.btn-del').forEach(function(btn){ btn.addEventListener('click',function(){ var id=btn.dataset.id; showConfirmModal('删除通知','确定删除这条通知吗？',function(ok){ if(!ok) return; notifyList=notifyList.filter(function(item){ return item.id!==id; }); saveNotifyToGitHub().then(function(){ renderNotifyListUI(); showToast('通知已删除'); }).catch(function(e){ showToast('删除失败: '+e.message); }); }); }); });
+        }
+
+        function openAddNotifyModal() {
+            var overlay=document.createElement('div'); overlay.className='modal-overlay show'; overlay.style.zIndex='2500';
+            var now=new Date(); var ts=now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0')+String(now.getHours()).padStart(2,'0')+String(now.getMinutes()).padStart(2,'0');
+            overlay.innerHTML='<div class="modal-content"><h3>发布通知</h3><label>时间戳（自动生成）</label><input value="'+ts+'" readonly style="background:#f0f2f5;color:#6b7280;"><label>通知内容</label><textarea id="newNotifyContent" placeholder="请输入通知内容"></textarea><label>链接</label><input id="newNotifyLink" placeholder="https://..." value=""><div class="modal-buttons"><button class="btn-cancel" id="notifyCancel">取消</button><button class="btn-confirm" id="notifyConfirm">发布</button></div></div>';
+            document.body.appendChild(overlay);
+            overlay.querySelector('#notifyCancel').addEventListener('click',function(){ overlay.remove(); });
+            overlay.addEventListener('click',function(e){ if(e.target===overlay) overlay.remove(); });
+            overlay.querySelector('#notifyConfirm').addEventListener('click',async function(){
+                var content=overlay.querySelector('#newNotifyContent').value.trim();
+                var link=overlay.querySelector('#newNotifyLink').value.trim();
+                if(!content){ showToast('请输入通知内容'); return; }
+                if(!link){ showToast('请输入链接'); return; }
+                if(link.indexOf('http')!==0){ showToast('链接需以 http:// 或 https:// 开头'); return; }
+                var raw=ts+' '+content+' '+link;
+                notifyList.push({ id:ts, content:content, link:link, raw:raw });
+                notifyList.sort(function(a,b){ return b.id.localeCompare(a.id); });
+                try{ await saveNotifyToGitHub(); renderNotifyListUI(); overlay.remove(); showToast('通知发布成功'); }catch(e){ showToast('保存失败: '+e.message); }
+            });
+        }
+
+        function buildGroupSelect(id, currentGroup, includeNewOption) {
+            var html='<select id="'+id+'" style="width:100%;padding:10px;border:1px solid #d0d5dd;border-radius:8px;font-size:0.9rem;">';
+            for(var g=0;g<groupOrder.length;g++){ html+='<option value="'+escapeHtml(groupOrder[g])+'"'+(groupOrder[g]===currentGroup?' selected':'')+'>'+escapeHtml(groupOrder[g])+'</option>'; }
+            if(includeNewOption) html+='<option value="__new_group__" style="color:#2b4c8a;font-weight:600;">+ 新建分组</option>';
+            html+='</select>';
+            return html;
+        }
+
+        function bindGroupSelectChange(selectEl, overlayEl) {
+            selectEl.addEventListener('change',function(){
+                if(this.value==='__new_group__'){
+                    this.value=groupOrder[0]||'其他应用';
+                    var promptOverlay=document.createElement('div'); promptOverlay.className='modal-overlay show'; promptOverlay.style.zIndex='3000';
+                    promptOverlay.innerHTML='<div class="modal-content"><h3>新建分组</h3><label>请输入分组名称</label><input id="newGroupNameInput" placeholder="分组名称"><div class="modal-buttons"><button class="btn-cancel" id="newGroupCancel">取消</button><button class="btn-confirm" id="newGroupConfirm">确定</button></div></div>';
+                    document.body.appendChild(promptOverlay);
+                    var inputEl=promptOverlay.querySelector('#newGroupNameInput');
+                    inputEl.focus();
+                    promptOverlay.querySelector('#newGroupCancel').addEventListener('click',function(){ promptOverlay.remove(); });
+                    promptOverlay.addEventListener('click',function(e){ if(e.target===promptOverlay) promptOverlay.remove(); });
+                    promptOverlay.querySelector('#newGroupConfirm').addEventListener('click',function(){
+                        var val=inputEl.value.trim();
+                        promptOverlay.remove();
+                        if(!val) return;
+                        if(groupOrder.indexOf(val)!==-1){ showToast('分组名称已存在'); return; }
+                        groupOrder.push(val);
+                        var parent=selectEl.parentNode;
+                        var newSelectHtml=buildGroupSelect(selectEl.id, val, true);
+                        parent.innerHTML=newSelectHtml;
+                        var newEl=parent.querySelector('#'+selectEl.id);
+                        bindGroupSelectChange(newEl, overlayEl);
+                        renderGroups();
+                    });
+                }
+            });
+        }
+
+        function openAddAppModal() {
+            var overlay=document.createElement('div'); overlay.className='modal-overlay show'; overlay.style.zIndex='2500';
+            overlay.innerHTML='<div class="modal-content"><h3>添加应用</h3>'+
+                '<label>应用名称</label><input id="newAppName" placeholder="应用名称">'+
+                '<label>创建方式</label><div class="mode-switch" id="appModeSwitch"><button class="active" data-mode="file">使用文件创建应用</button><button data-mode="url">使用网址创建应用</button></div>'+
+                '<div id="appFileSection"><div class="upload-file-area" id="appUploadArea"><button id="appUploadBtn">+ 上传文件</button><span class="file-name" id="appFileName"></span><span class="file-status" id="appFileStatus"></span></div></div>'+
+                '<div id="appUrlSection" style="display:none;"><label>跳转链接</label><input id="newAppLink" placeholder="输入网址或文件名"></div>'+
+                '<label>图标链接</label><input id="newAppIcon" placeholder="自动填充">'+
+                '<label>所属分组</label><div id="appGroupContainer"></div>'+
+                '<div class="modal-buttons"><button class="btn-cancel" id="appCancel">取消</button><button class="btn-confirm" id="appConfirm">添加</button></div></div>';
+            document.body.appendChild(overlay);
+
+            document.getElementById('appGroupContainer').innerHTML=buildGroupSelect('newAppGroup','其他应用',true);
+            bindGroupSelectChange(document.getElementById('newAppGroup'), overlay);
+
+            var mode='file';
+            var uploadedFilePath=null;
+            var isUploading=false;
+            var uploadedFilesToClean=[];
+
+            function updateModeUI() {
+                document.getElementById('appFileSection').style.display = (mode==='file') ? '' : 'none';
+                document.getElementById('appUrlSection').style.display = (mode==='url') ? '' : 'none';
+                document.querySelectorAll('#appModeSwitch button').forEach(function(b){ b.classList.toggle('active', b.dataset.mode===mode); });
+            }
+
+            function autoFillIcon(path) {
+                var iconInput=document.getElementById('newAppIcon');
+                if(!iconInput.value || iconInput.value==='null.jpg' || iconInput.value===''){
+                    iconInput.value=getAutoIcon(path);
+                }
+            }
+
+            function addDeleteButton() {
+                var area=document.getElementById('appUploadArea');
+                var existingBtn=area.querySelector('.file-delete-btn');
+                if(existingBtn) existingBtn.remove();
+                if(uploadedFilePath){
+                    var delBtn=document.createElement('button');
+                    delBtn.className='file-delete-btn';
+                    delBtn.textContent='删除';
+                    delBtn.addEventListener('click',async function(){
+                        if(isUploading) return;
+                        var statusEl=document.getElementById('appFileStatus');
+                        var nameEl=document.getElementById('appFileName');
+                        var uploadBtn=document.getElementById('appUploadBtn');
+                        var confirmBtn=document.getElementById('appConfirm');
+                        isUploading=true; uploadBtn.disabled=true; confirmBtn.disabled=true;
+                        statusEl.textContent='正在删除...'; statusEl.className='file-status loading';
+                        try{
+                            await deleteFileByPath(uploadedFilePath);
+                            uploadedFilesToClean=uploadedFilesToClean.filter(function(f){ return f!==uploadedFilePath; });
+                            uploadedFilePath=null;
+                            nameEl.textContent='';
+                            statusEl.textContent='已删除'; statusEl.className='file-status success';
+                            delBtn.remove();
+                            setTimeout(function(){ statusEl.textContent=''; statusEl.className='file-status'; },2000);
+                        }catch(e){
+                            statusEl.textContent='删除失败'; statusEl.className='file-status error';
+                        }
+                        isUploading=false; uploadBtn.disabled=false; confirmBtn.disabled=false;
+                    });
+                    area.appendChild(delBtn);
+                }
+            }
+
+            overlay.querySelector('#appModeSwitch').addEventListener('click', function(e){
+                if(e.target.tagName==='BUTTON' && e.target.dataset.mode && e.target.dataset.mode!==mode){
+                    mode=e.target.dataset.mode; updateModeUI();
+                }
+            });
+
+            overlay.querySelector('#appUploadBtn').addEventListener('click', function(){
+                if(isUploading) return;
+                var inp=document.createElement('input'); inp.type='file';
+                inp.onchange=async function(ev){
+                    if(!ev.target.files[0]) return;
+                    var file=ev.target.files[0];
+                    var statusEl=document.getElementById('appFileStatus');
+                    var nameEl=document.getElementById('appFileName');
+                    var uploadBtn=document.getElementById('appUploadBtn');
+                    var confirmBtn=document.getElementById('appConfirm');
+                    isUploading=true; uploadBtn.disabled=true; confirmBtn.disabled=true;
+                    statusEl.textContent='上传中...'; statusEl.className='file-status loading';
+                    nameEl.textContent=file.name;
+                    try{
+                        var fullPath=UPLOAD_FOLDER+file.name;
+                        var exists=await checkFileExists(fullPath);
+                        if(exists){
+                            isUploading=false; uploadBtn.disabled=false; confirmBtn.disabled=false;
+                            statusEl.textContent=''; statusEl.className='file-status';
+                            showDuplicateFileDialog(file, overlay, function(resultPath){
+                                uploadedFilePath=resultPath;
+                                uploadedFilesToClean.push(resultPath);
+                                nameEl.textContent=resultPath;
+                                statusEl.textContent='已选择'; statusEl.className='file-status success';
+                                confirmBtn.disabled=false;
+                                autoFillIcon(resultPath);
+                                addDeleteButton();
+                            });
+                            return;
+                        }
+                        var fn=await uploadFileDirect(file);
+                        uploadedFilePath=fn;
+                        uploadedFilesToClean.push(fn);
+                        statusEl.textContent='上传完成'; statusEl.className='file-status success';
+                        confirmBtn.disabled=false;
+                        autoFillIcon(fn);
+                        addDeleteButton();
+                    }catch(err){
+                        statusEl.textContent='上传失败'; statusEl.className='file-status error';
+                    }
+                    isUploading=false; uploadBtn.disabled=false;
+                };
+                inp.click();
+            });
+
+            var urlInput=document.getElementById('newAppLink');
+            urlInput.addEventListener('blur',function(){
+                var val=urlInput.value.trim();
+                if(val){
+                    var resolved=smartResolveLink(val);
+                    autoFillIcon(resolved);
+                }
+            });
+
+            function cleanupUploadedFiles() {
+                uploadedFilesToClean.forEach(function(fp){
+                    deleteFileByPath(fp);
+                });
+            }
+
+            overlay.querySelector('#appCancel').addEventListener('click',function(){
+                cleanupUploadedFiles();
+                overlay.remove();
+            });
+            overlay.addEventListener('click',function(e){
+                if(e.target===overlay){
+                    cleanupUploadedFiles();
+                    overlay.remove();
+                }
+            });
+
+            document.getElementById('appConfirm').addEventListener('click',function(){
+                if(isUploading) return;
+                var n=document.getElementById('newAppName').value.trim();
+                var icon=document.getElementById('newAppIcon').value.trim();
+                var g=document.getElementById('newAppGroup').value;
+                if(g==='__new_group__') g='其他应用';
+                var link;
+                if(mode==='file'){
+                    if(!uploadedFilePath){ showToast('请先上传文件'); return; }
+                    link=uploadedFilePath;
+                } else {
+                    var rawLink=urlInput.value.trim();
+                    link=smartResolveLink(rawLink);
+                }
+                if(!n){ showToast('请填写应用名称'); return; }
+                if(!link){ showToast('请提供文件或链接'); return; }
+                if(!icon) icon=getAutoIcon(link);
+                appItems.push({name:n,icon:icon||'null.jpg',link:link,group:g!=='其他应用'?g:null});
+                uploadedFilesToClean=[];
+                renderApps(); overlay.remove();
+            });
+        }
+
+        function showDuplicateFileDialog(file, parentOverlay, callback) {
+            var dialog=document.createElement('div'); dialog.className='modal-overlay show'; dialog.style.zIndex='3000';
+            dialog.innerHTML='<div class="modal-content"><h3>该文件已存在</h3><p style="color:#6b7280;margin-bottom:16px;">请选择你的操作</p>'+
+                '<div class="modal-buttons" style="flex-direction:column;gap:8px;">'+
+                '<button class="btn-confirm" id="dupCopy">创建副本</button>'+
+                '<button class="btn-cancel" id="dupUse">使用该文件</button>'+
+                '<button class="btn-cancel" id="dupCancel">取消</button></div></div>';
+            document.body.appendChild(dialog);
+
+            dialog.querySelector('#dupCopy').addEventListener('click',async function(){
+                dialog.remove();
+                var statusEl=document.getElementById('appFileStatus')||document.getElementById('carouselFileStatus');
+                var nameEl=document.getElementById('appFileName')||document.getElementById('carouselFileName');
+                if(statusEl){ statusEl.textContent='创建副本中...'; statusEl.className='file-status loading'; }
+                try{
+                    var origName=file.name;
+                    var baseName=UPLOAD_FOLDER+origName;
+                    var copyName=getCopyFileName(baseName);
+                    var exists=await checkFileExists(copyName);
+                    while(exists){ copyName=getCopyFileName(copyName); exists=await checkFileExists(copyName); }
+                    var reader=new FileReader();
+                    var base64=await new Promise(function(resolve){ reader.onload=function(e){ resolve(e.target.result.split(',')[1]); }; reader.readAsDataURL(file); });
+                    var r=await fetch('https://api.github.com/repos/'+GITHUB_OWNER+'/'+GITHUB_REPO+'/contents/'+encodeURIComponent(copyName),{method:'PUT',headers:{'Authorization':'Bearer '+currentToken},body:JSON.stringify({message:'上传副本 '+copyName,content:base64,branch:'main'})});
+                    if(!r.ok) throw new Error('上传失败');
+                    if(nameEl) nameEl.textContent=copyName;
+                    if(statusEl){ statusEl.textContent='上传完成'; statusEl.className='file-status success'; }
+                    callback(copyName);
+                }catch(e){ if(statusEl){ statusEl.textContent='上传失败'; statusEl.className='file-status error'; } }
+            });
+
+            dialog.querySelector('#dupUse').addEventListener('click',function(){
+                dialog.remove();
+                var fn=UPLOAD_FOLDER+file.name;
+                var nameEl=document.getElementById('appFileName')||document.getElementById('carouselFileName');
+                var statusEl=document.getElementById('appFileStatus')||document.getElementById('carouselFileStatus');
+                if(nameEl) nameEl.textContent=fn;
+                if(statusEl){ statusEl.textContent='已选择'; statusEl.className='file-status success'; }
+                callback(fn);
+            });
+
+            dialog.querySelector('#dupCancel').addEventListener('click',function(){ dialog.remove(); });
+            dialog.addEventListener('click',function(e){ if(e.target===dialog) dialog.remove(); });
+        }
+
+        function openAddCarouselModal() {
+            var overlay=document.createElement('div'); overlay.className='modal-overlay show'; overlay.style.zIndex='2500';
+            overlay.innerHTML='<div class="modal-content"><h3>添加轮播图</h3>'+
+                '<label>图片来源</label><div class="mode-switch" id="carouselModeSwitch"><button class="active" data-mode="file">上传图片</button><button data-mode="url">使用网络图片</button></div>'+
+                '<div id="carouselFileSection"><div class="upload-file-area" id="carouselUploadArea"><button id="carouselUploadBtn">+ 上传图片</button><span class="file-name" id="carouselFileName"></span><span class="file-status" id="carouselFileStatus"></span></div></div>'+
+                '<div id="carouselUrlSection" style="display:none;"><label>图片链接</label><input id="newCarouselImg" placeholder="输入图片网址或文件名"></div>'+
+                '<label>跳转链接</label><input id="newCarouselLink" placeholder="https://...">'+
+                '<div class="modal-buttons"><button class="btn-cancel" id="carouselCancel">取消</button><button class="btn-confirm" id="carouselConfirm">添加</button></div></div>';
+            document.body.appendChild(overlay);
+
+            var mode='file';
+            var uploadedImgPath=null;
+            var isUploading=false;
+            var uploadedFilesToClean=[];
+
+            function updateModeUI() {
+                document.getElementById('carouselFileSection').style.display = (mode==='file') ? '' : 'none';
+                document.getElementById('carouselUrlSection').style.display = (mode==='url') ? '' : 'none';
+                document.querySelectorAll('#carouselModeSwitch button').forEach(function(b){ b.classList.toggle('active', b.dataset.mode===mode); });
+            }
+
+            function addDeleteButton() {
+                var area=document.getElementById('carouselUploadArea');
+                var existingBtn=area.querySelector('.file-delete-btn');
+                if(existingBtn) existingBtn.remove();
+                if(uploadedImgPath){
+                    var delBtn=document.createElement('button');
+                    delBtn.className='file-delete-btn';
+                    delBtn.textContent='删除';
+                    delBtn.addEventListener('click',async function(){
+                        if(isUploading) return;
+                        var statusEl=document.getElementById('carouselFileStatus');
+                        var nameEl=document.getElementById('carouselFileName');
+                        var uploadBtn=document.getElementById('carouselUploadBtn');
+                        var confirmBtn=document.getElementById('carouselConfirm');
+                        isUploading=true; uploadBtn.disabled=true; confirmBtn.disabled=true;
+                        statusEl.textContent='正在删除...'; statusEl.className='file-status loading';
+                        try{
+                            await deleteFileByPath(uploadedImgPath);
+                            uploadedFilesToClean=uploadedFilesToClean.filter(function(f){ return f!==uploadedImgPath; });
+                            uploadedImgPath=null;
+                            nameEl.textContent='';
+                            statusEl.textContent='已删除'; statusEl.className='file-status success';
+                            delBtn.remove();
+                            setTimeout(function(){ statusEl.textContent=''; statusEl.className='file-status'; },2000);
+                        }catch(e){
+                            statusEl.textContent='删除失败'; statusEl.className='file-status error';
+                        }
+                        isUploading=false; uploadBtn.disabled=false; confirmBtn.disabled=false;
+                    });
+                    area.appendChild(delBtn);
+                }
+            }
+
+            overlay.querySelector('#carouselModeSwitch').addEventListener('click', function(e){
+                if(e.target.tagName==='BUTTON' && e.target.dataset.mode && e.target.dataset.mode!==mode){
+                    mode=e.target.dataset.mode; updateModeUI();
+                }
+            });
+
+            overlay.querySelector('#carouselUploadBtn').addEventListener('click', function(){
+                if(isUploading) return;
+                var inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
+                inp.onchange=async function(ev){
+                    if(!ev.target.files[0]) return;
+                    var file=ev.target.files[0];
+                    var statusEl=document.getElementById('carouselFileStatus');
+                    var nameEl=document.getElementById('carouselFileName');
+                    var uploadBtn=document.getElementById('carouselUploadBtn');
+                    var confirmBtn=document.getElementById('carouselConfirm');
+                    isUploading=true; uploadBtn.disabled=true; confirmBtn.disabled=true;
+                    statusEl.textContent='上传中...'; statusEl.className='file-status loading';
+                    nameEl.textContent=file.name;
+                    try{
+                        var fullPath=UPLOAD_FOLDER+file.name;
+                        var exists=await checkFileExists(fullPath);
+                        if(exists){
+                            isUploading=false; uploadBtn.disabled=false; confirmBtn.disabled=false;
+                            statusEl.textContent=''; statusEl.className='file-status';
+                            showDuplicateFileDialog(file, overlay, function(resultPath){
+                                uploadedImgPath=resultPath;
+                                uploadedFilesToClean.push(resultPath);
+                                nameEl.textContent=resultPath;
+                                statusEl.textContent='已选择'; statusEl.className='file-status success';
+                                confirmBtn.disabled=false;
+                                addDeleteButton();
+                            });
+                            return;
+                        }
+                        var fn=await uploadFileDirect(file);
+                        uploadedImgPath=fn;
+                        uploadedFilesToClean.push(fn);
+                        statusEl.textContent='上传完成'; statusEl.className='file-status success';
+                        confirmBtn.disabled=false;
+                        addDeleteButton();
+                    }catch(err){
+                        statusEl.textContent='上传失败'; statusEl.className='file-status error';
+                    }
+                    isUploading=false; uploadBtn.disabled=false;
+                };
+                inp.click();
+            });
+
+            function cleanupUploadedFiles() {
+                uploadedFilesToClean.forEach(function(fp){
+                    deleteFileByPath(fp);
+                });
+            }
+
+            overlay.querySelector('#carouselCancel').addEventListener('click',function(){
+                cleanupUploadedFiles();
+                overlay.remove();
+            });
+            overlay.addEventListener('click',function(e){
+                if(e.target===overlay){
+                    cleanupUploadedFiles();
+                    overlay.remove();
+                }
+            });
+
+            document.getElementById('carouselConfirm').addEventListener('click',function(){
+                if(isUploading) return;
+                var img, link=document.getElementById('newCarouselLink').value.trim();
+                if(mode==='file'){
+                    if(!uploadedImgPath){ showToast('请先上传图片'); return; }
+                    img=uploadedImgPath;
+                } else {
+                    var rawImg=document.getElementById('newCarouselImg').value.trim();
+                    img=smartResolveLink(rawImg);
+                }
+                if(!img){ showToast('请提供图片'); return; }
+                slidesData.push({imgUrl:img,linkUrl:link});
+                uploadedFilesToClean=[];
+                renderCarousels(); overlay.remove();
+            });
+        }
+
+        function checkRememberedToken() { var saved=localStorage.getItem('editor_token'); if(saved){ document.getElementById('tokenInput').value=saved; document.getElementById('rememberToken').checked=true; } }
+
+        async function doLogin() {
+            var token=document.getElementById('tokenInput').value.trim();
+            var remember=document.getElementById('rememberToken').checked;
+            var errorEl=document.getElementById('loginError');
+            var btn=document.getElementById('loginBtn');
+            if(!token){ errorEl.textContent='请输入密钥'; errorEl.style.display='block'; return; }
+            btn.disabled=true; btn.textContent='验证中...'; errorEl.style.display='none';
+            try{ var r=await fetch('https://api.github.com/user',{headers:{'Authorization':'Bearer '+token}}); if(!r.ok) throw new Error('密钥无效');
+                currentToken=token; if(remember) localStorage.setItem('editor_token',token); else localStorage.removeItem('editor_token');
+                await Promise.all([loadRemoteConfig(),loadRemoteNotify()]);
+                fileSha=await fetchSha(GITHUB_PATH); notifySha=await fetchSha(NOTIFY_PATH);
+                document.getElementById('loginOverlay').style.display='none'; document.getElementById('mainContent').style.display='block';
+                renderGroups(); renderCarousels(); renderApps(); renderNotifyListUI(); showToast('加载成功');
+            }catch(e){ errorEl.textContent='验证失败：'+e.message; errorEl.style.display='block'; }
+            finally{ btn.disabled=false; btn.textContent='验证并进入'; }
+        }
+
+        function doLogout() { document.getElementById('loginOverlay').style.display='flex'; document.getElementById('mainContent').style.display='none'; currentToken=null; fileSha=null; notifySha=null; document.getElementById('tokenInput').value=''; checkRememberedToken(); }
+
+        document.getElementById('loginBtn').addEventListener('click',doLogin);
+        document.getElementById('tokenInput').addEventListener('keydown',function(e){ if(e.key==='Enter') doLogin(); });
+        document.getElementById('logoutBtn').addEventListener('click',function(){ showConfirmModal('退出','确定退出编辑吗？未保存的更改将丢失。',function(ok){ if(ok) doLogout(); }); });
+        document.getElementById('saveBtn').addEventListener('click',async function(){ var btn=document.getElementById('saveBtn'); btn.disabled=true; btn.textContent='保存中...'; try{ await saveToGitHub(); showToast('保存成功！'); }catch(e){ showToast('保存失败：'+e.message); } finally{ btn.disabled=false; btn.textContent='保存配置'; } });
+
+        document.getElementById('uploadBtn').addEventListener('click',function(){
+            var inp=document.createElement('input'); inp.type='file';
+            inp.onchange=async function(e){
+                if(!e.target.files[0]) return;
+                var file=e.target.files[0];
+                var statusEl=document.getElementById('uploadStatus');
+                statusEl.textContent='正在上传：'+file.name+' ...'; statusEl.className='upload-status loading';
+                try{
+                    var fn=await uploadFileDirect(file);
+                    statusEl.textContent='上传完成'; statusEl.className='upload-status success';
+                    showUploadResultModal(file.name, fn);
+                    setTimeout(function(){ statusEl.textContent=''; statusEl.className='upload-status'; },3000);
+                }catch(err){
+                    statusEl.textContent='上传失败：'+err.message; statusEl.className='upload-status error';
+                    setTimeout(function(){ statusEl.textContent=''; statusEl.className='upload-status'; },3000);
+                }
+            };
+            inp.click();
+        });
+
+        document.getElementById('addGroupBtn').addEventListener('click',function(){ showTextModal('添加分组','',function(val){ if(!val) return; if(groupOrder.indexOf(val)!==-1){ showToast('分组名称已存在'); return; } groupOrder.push(val); renderGroups(); renderApps(); }); });
+        document.getElementById('addCarouselBtn').addEventListener('click',openAddCarouselModal);
+        document.getElementById('addAppBtn').addEventListener('click',openAddAppModal);
+        document.getElementById('addNotifyBtn').addEventListener('click',openAddNotifyModal);
+
+        function init(){ checkRememberedToken(); var saved=localStorage.getItem('editor_token'); if(saved){ document.getElementById('tokenInput').value=saved; document.getElementById('rememberToken').checked=true; doLogin(); } }
+        init();
+    </script>
+</body>
+</html>
