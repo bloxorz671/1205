@@ -3,7 +3,7 @@ group
 [g=班级应用]
 [g=系统应用]
 pic
-[p=fiveappfile/IMG_20260807_171236.png l=https://wj.qq.com/s2/27530424/kcmp/]
+[p=https://share-text.org/api/imgUrlV2?text=share-text-uploads/2026-8-7/a97e9b14-1e2a-4d21-b79b-b7640a7c9a87-____________.jpg l=https://wj.qq.com/s2/27530424/kcmp/]
 app
 [n=电子值日码 p=https://luckynum.top/ezr.jpg l=https://luckynum.top/ezr g=班级应用]
 [n=2026年初二级暑假作业清单.pdf p=pdf.jpg l=https://luckynum.top/五班文件/2026年初二级暑假作业清单.pdf g=暑假专区]
