@@ -30,6 +30,7 @@
         .login-box button { width: 100%; padding: 12px; background: #2b4c8a; color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; }
         .login-box button:active { background: #1e3c72; }
         .login-error { color: #e74c3c; font-size: 0.8rem; margin-top: 8px; display: none; }
+        .login-debug { color: #6b7280; font-size: 0.7rem; margin-top: 8px; word-break: break-all; background: #f0f2f5; padding: 6px 10px; border-radius: 4px; display: none; }
 
         .main-content { max-width: 900px; margin: 0 auto; padding: 16px; display: none; }
 
@@ -124,19 +125,16 @@
             <h3>验证身份</h3>
             <p>选择登录方式进入编辑</p>
 
-            <!-- 登录模式切换 -->
             <div class="mode-switch" id="loginModeSwitch">
                 <button class="active" data-mode="account">账号密码</button>
                 <button data-mode="token">临时密钥</button>
             </div>
 
-            <!-- 账号密码登录 -->
             <div id="accountLogin" class="login-field active">
                 <input type="text" id="usernameInput" placeholder="请输入用户名..." autocomplete="username">
                 <input type="password" id="passwordInput" placeholder="请输入密码..." autocomplete="current-password">
             </div>
 
-            <!-- 临时密钥登录 -->
             <div id="tokenLogin" class="login-field">
                 <input type="password" id="tokenInput" placeholder="请输入临时密钥..." autocomplete="off">
             </div>
@@ -147,6 +145,7 @@
             </div>
             <button id="loginBtn">登录</button>
             <div class="login-error" id="loginError">登录失败，请重试</div>
+            <div class="login-debug" id="loginDebug"></div>
         </div>
     </div>
 
@@ -346,7 +345,6 @@
             try {
                 var response = await githubFetch('/contents/' + GITHUB_PATH, { method: 'GET' });
                 var data = await response.json();
-                // 修复中文乱码：decodeURIComponent(escape(...))
                 var content = decodeURIComponent(escape(atob(data.content)));
                 fileSha = data.sha;
                 parseAppTxt(content);
@@ -360,7 +358,6 @@
             try {
                 var response = await githubFetch('/contents/' + NOTIFY_PATH, { method: 'GET' });
                 var data = await response.json();
-                // 修复中文乱码：decodeURIComponent(escape(...))
                 var content = decodeURIComponent(escape(atob(data.content)));
                 notifySha = data.sha;
                 parseNotifyTxt(content);
@@ -1190,12 +1187,14 @@
 
         async function doLogin() {
             var errorEl = document.getElementById('loginError');
+            var debugEl = document.getElementById('loginDebug');
             var btn = document.getElementById('loginBtn');
             var remember = document.getElementById('rememberLogin').checked;
 
             btn.disabled = true;
             btn.textContent = '登录中...';
             errorEl.style.display = 'none';
+            debugEl.style.display = 'none';
 
             try {
                 var username = '',
@@ -1211,7 +1210,6 @@
                         btn.textContent = '登录';
                         return;
                     }
-                    // ✅ 前端不再校验，直接透传给 Worker
                 } else {
                     var tempToken = document.getElementById('tokenInput').value.trim();
                     if (!tempToken) {
@@ -1225,13 +1223,20 @@
                     password = tempToken;
                 }
 
+                debugEl.textContent = '📤 发送: username=' + username + ', password=' + password.substring(0, 4) + '***';
+                debugEl.style.display = 'block';
+
                 var response = await fetch(WORKER_BASE + '/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username: username, password: password })
                 });
 
-                var data = await response.json();
+                var responseText = await response.text();
+                debugEl.textContent = '📥 响应: ' + response.status + ' ' + responseText.substring(0, 100);
+                debugEl.style.display = 'block';
+
+                var data = JSON.parse(responseText);
 
                 if (data.success) {
                     sessionToken = data.token;
@@ -1268,8 +1273,10 @@
                     errorEl.style.display = 'block';
                 }
             } catch (e) {
-                errorEl.textContent = '网络错误，请检查连接';
+                errorEl.textContent = '网络错误: ' + e.message;
                 errorEl.style.display = 'block';
+                debugEl.textContent = '❌ 异常: ' + e.message;
+                debugEl.style.display = 'block';
                 console.error('登录错误:', e);
             } finally {
                 btn.disabled = false;
