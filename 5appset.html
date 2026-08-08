@@ -191,7 +191,7 @@
 
     <script>
         // ============================================================
-        // 🚀 配置区
+        // 🚀 配置区（✅ 已修复 WORKER_BASE，加上 /v1）
         // ============================================================
         var WORKER_BASE = 'https://api.luckynum.top/v1';
 
@@ -1233,7 +1233,7 @@
                 });
 
                 var responseText = await response.text();
-                debugEl.textContent = '📥 响应: ' + response.status + ' ' + responseText.substring(0, 100);
+                debugEl.textContent = '📥 响应: ' + response.status + ' ' + responseText.substring(0, 200);
                 debugEl.style.display = 'block';
 
                 var data = JSON.parse(responseText);
