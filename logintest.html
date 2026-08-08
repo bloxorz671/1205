@@ -20,6 +20,11 @@
         .login-box { background: white; border-radius: 16px; padding: 28px 24px; width: 90%; max-width: 400px; text-align: center; }
         .login-box h3 { margin-bottom: 8px; color: #1e3c72; }
         .login-box p { font-size: 0.8rem; color: #6b7280; margin-bottom: 20px; }
+        .login-box .mode-switch { display: flex; gap: 0; margin-bottom: 16px; border-radius: 8px; overflow: hidden; border: 1px solid #d0d5dd; }
+        .login-box .mode-switch button { flex: 1; padding: 10px; border: none; background: #f0f2f5; color: #6b7280; cursor: pointer; font-size: 0.85rem; transition: all 0.15s; }
+        .login-box .mode-switch button.active { background: #2b4c8a; color: white; font-weight: 600; }
+        .login-box .login-field { display: none; }
+        .login-box .login-field.active { display: block; }
         .login-box input[type="text"], .login-box input[type="password"] { width: 100%; padding: 12px; border: 1px solid #d0d5dd; border-radius: 8px; font-size: 0.9rem; margin-bottom: 12px; }
         .login-box .remember-row { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #4b5563; margin-bottom: 16px; justify-content: center; }
         .login-box button { width: 100%; padding: 12px; background: #2b4c8a; color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; }
@@ -90,10 +95,6 @@
         .btn-cancel { background: #e5e7eb; color: #1f2937; }
         .btn-cancel:active { background: #d0d5dd; }
 
-        .mode-switch { display: flex; gap: 0; margin-bottom: 12px; border-radius: 8px; overflow: hidden; border: 1px solid #d0d5dd; }
-        .mode-switch button { flex: 1; padding: 10px; border: none; background: #f0f2f5; color: #6b7280; cursor: pointer; font-size: 0.85rem; transition: all 0.15s; }
-        .mode-switch button.active { background: #2b4c8a; color: white; font-weight: 600; }
-
         .upload-file-area { display: flex; align-items: center; gap: 8px; padding: 8px 0; flex-wrap: wrap; }
         .upload-file-area button { background: #f39c12; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; white-space: nowrap; }
         .upload-file-area button:disabled { background: #d0d5dd; cursor: not-allowed; }
@@ -121,15 +122,31 @@
     <div class="login-overlay" id="loginOverlay">
         <div class="login-box">
             <h3>验证身份</h3>
-            <p>请输入用户名和密码进入编辑</p>
-            <input type="text" id="usernameInput" placeholder="请输入用户名..." autocomplete="username">
-            <input type="password" id="passwordInput" placeholder="请输入密码..." autocomplete="current-password">
+            <p>选择登录方式进入编辑</p>
+
+            <!-- 登录模式切换 -->
+            <div class="mode-switch" id="loginModeSwitch">
+                <button class="active" data-mode="account">账号密码</button>
+                <button data-mode="token">临时密钥</button>
+            </div>
+
+            <!-- 账号密码登录 -->
+            <div id="accountLogin" class="login-field active">
+                <input type="text" id="usernameInput" placeholder="请输入用户名..." autocomplete="username">
+                <input type="password" id="passwordInput" placeholder="请输入密码..." autocomplete="current-password">
+            </div>
+
+            <!-- 临时密钥登录 -->
+            <div id="tokenLogin" class="login-field">
+                <input type="password" id="tokenInput" placeholder="请输入临时密钥..." autocomplete="off">
+            </div>
+
             <div class="remember-row">
                 <input type="checkbox" id="rememberLogin">
                 <label for="rememberLogin">记住登录（下次自动填充）</label>
             </div>
             <button id="loginBtn">登录</button>
-            <div class="login-error" id="loginError">用户名或密码错误，请重试</div>
+            <div class="login-error" id="loginError">登录失败，请重试</div>
         </div>
     </div>
 
@@ -175,10 +192,16 @@
 
     <script>
         // ============================================================
-        // 🚀 配置区 - 修改这里适配你的 Worker 地址
+        // 🚀 配置区
         // ============================================================
         var WORKER_BASE = 'https://api.luckynum.top/v1';
-        // ============================================================
+
+        // 账号密码登录的用户列表（与 Worker 保持一致）
+        var ACCOUNT_USERS = [
+            { username: 'zhangsan', password: 'pass123' },
+            { username: 'lisi', password: 'pass456' },
+            { username: 'wangwu', password: 'pass789' },
+        ];
 
         var GITHUB_OWNER = 'bloxorz671';
         var GITHUB_REPO = '1205';
@@ -189,6 +212,7 @@
 
         var sessionToken = null;
         var currentUser = null;
+        var loginMode = 'account'; // 'account' 或 'token'
         var fileSha = null;
         var notifySha = null;
         var groupOrder = ['其他应用'];
@@ -225,7 +249,7 @@
         function showToast(msg) { var t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(function(){t.remove();},2100); }
 
         // ============================================================
-        // 🔐 登录相关 - 使用 Worker API
+        // 弹窗函数
         // ============================================================
         function showTextModal(title,currentValue,callback,onBlurCallback) {
             var modal=document.getElementById('textModal');
@@ -270,7 +294,7 @@
         }
 
         // ============================================================
-        // 📦 数据解析
+        // 数据解析
         // ============================================================
         function parseAppTxt(raw) {
             var lines=raw.split(/\r?\n/); var mode=null; groupOrder=[]; slidesData=[]; appItems=[];
@@ -323,13 +347,14 @@
         }
 
         // ============================================================
-        // 📥 加载配置
+        // 📥 加载配置（修复中文乱码）
         // ============================================================
         async function loadRemoteConfig() {
             try {
                 var response = await githubFetch('/contents/' + GITHUB_PATH, { method: 'GET' });
                 var data = await response.json();
-                var content = atob(data.content);
+                // ✅ 修复中文乱码：decodeURIComponent(escape(...))
+                var content = decodeURIComponent(escape(atob(data.content)));
                 fileSha = data.sha;
                 parseAppTxt(content);
             } catch (e) {
@@ -342,7 +367,8 @@
             try {
                 var response = await githubFetch('/contents/' + NOTIFY_PATH, { method: 'GET' });
                 var data = await response.json();
-                var content = atob(data.content);
+                // ✅ 修复中文乱码：decodeURIComponent(escape(...))
+                var content = decodeURIComponent(escape(atob(data.content)));
                 notifySha = data.sha;
                 parseNotifyTxt(content);
             } catch (e) {
@@ -387,7 +413,7 @@
         }
 
         // ============================================================
-        // 📤 上传文件到 GitHub（通过 Worker）
+        // 📤 上传文件
         // ============================================================
         async function checkFileExists(fullPath) {
             try {
@@ -1131,36 +1157,98 @@
         }
 
         // ============================================================
-        // 🔐 登录逻辑
+        // 🔐 登录逻辑（双模式）
         // ============================================================
         function checkRememberedLogin() {
             var savedUser = localStorage.getItem('editor_username');
             var savedPass = localStorage.getItem('editor_password');
-            if (savedUser && savedPass) {
+            var savedToken = localStorage.getItem('editor_temp_token');
+            var savedMode = localStorage.getItem('editor_login_mode') || 'account';
+
+            if (savedMode === 'account' && savedUser && savedPass) {
                 document.getElementById('usernameInput').value = savedUser;
                 document.getElementById('passwordInput').value = savedPass;
                 document.getElementById('rememberLogin').checked = true;
+                // 切换到账号模式
+                switchLoginMode('account');
+                // 自动登录
+                setTimeout(doLogin, 100);
+            } else if (savedMode === 'token' && savedToken) {
+                document.getElementById('tokenInput').value = savedToken;
+                document.getElementById('rememberLogin').checked = true;
+                switchLoginMode('token');
+                setTimeout(doLogin, 100);
             }
         }
 
+        function switchLoginMode(mode) {
+            loginMode = mode;
+            // 切换按钮样式
+            document.querySelectorAll('#loginModeSwitch button').forEach(function(btn) {
+                btn.classList.toggle('active', btn.dataset.mode === mode);
+            });
+            // 切换输入框显示
+            document.getElementById('accountLogin').classList.toggle('active', mode === 'account');
+            document.getElementById('tokenLogin').classList.toggle('active', mode === 'token');
+            // 清空错误
+            document.getElementById('loginError').style.display = 'none';
+        }
+
+        // 登录模式切换事件
+        document.querySelectorAll('#loginModeSwitch button').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                switchLoginMode(this.dataset.mode);
+            });
+        });
+
         async function doLogin() {
-            var username = document.getElementById('usernameInput').value.trim();
-            var password = document.getElementById('passwordInput').value.trim();
-            var remember = document.getElementById('rememberLogin').checked;
             var errorEl = document.getElementById('loginError');
             var btn = document.getElementById('loginBtn');
-
-            if (!username || !password) {
-                errorEl.textContent = '请输入用户名和密码';
-                errorEl.style.display = 'block';
-                return;
-            }
+            var remember = document.getElementById('rememberLogin').checked;
 
             btn.disabled = true;
             btn.textContent = '登录中...';
             errorEl.style.display = 'none';
 
             try {
+                var username = '',
+                    password = '';
+
+                if (loginMode === 'account') {
+                    username = document.getElementById('usernameInput').value.trim();
+                    password = document.getElementById('passwordInput').value.trim();
+                    if (!username || !password) {
+                        errorEl.textContent = '请输入用户名和密码';
+                        errorEl.style.display = 'block';
+                        btn.disabled = false;
+                        btn.textContent = '登录';
+                        return;
+                    }
+                    // 验证账号密码是否在列表中
+                    var user = ACCOUNT_USERS.find(u => u.username === username && u.password === password);
+                    if (!user) {
+                        errorEl.textContent = '用户名或密码错误';
+                        errorEl.style.display = 'block';
+                        btn.disabled = false;
+                        btn.textContent = '登录';
+                        return;
+                    }
+                } else {
+                    // 临时密钥模式：直接使用输入的 Token
+                    var tempToken = document.getElementById('tokenInput').value.trim();
+                    if (!tempToken) {
+                        errorEl.textContent = '请输入临时密钥';
+                        errorEl.style.display = 'block';
+                        btn.disabled = false;
+                        btn.textContent = '登录';
+                        return;
+                    }
+                    // 用临时 Token 作为密码，用户名固定为 'temp'
+                    username = 'temp';
+                    password = tempToken;
+                }
+
+                // 调用 Worker 登录接口（Worker 只验证账号密码）
                 var response = await fetch(WORKER_BASE + '/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1173,12 +1261,23 @@
                     sessionToken = data.token;
                     currentUser = data.username;
 
+                    // 记住登录
                     if (remember) {
-                        localStorage.setItem('editor_username', username);
-                        localStorage.setItem('editor_password', password);
+                        localStorage.setItem('editor_login_mode', loginMode);
+                        if (loginMode === 'account') {
+                            localStorage.setItem('editor_username', username);
+                            localStorage.setItem('editor_password', password);
+                            localStorage.removeItem('editor_temp_token');
+                        } else {
+                            localStorage.setItem('editor_temp_token', password);
+                            localStorage.removeItem('editor_username');
+                            localStorage.removeItem('editor_password');
+                        }
                     } else {
+                        localStorage.removeItem('editor_login_mode');
                         localStorage.removeItem('editor_username');
                         localStorage.removeItem('editor_password');
+                        localStorage.removeItem('editor_temp_token');
                     }
 
                     await Promise.all([loadRemoteConfig(), loadRemoteNotify()]);
@@ -1188,7 +1287,7 @@
                     renderCarousels();
                     renderApps();
                     renderNotifyListUI();
-                    showToast('登录成功，欢迎 ' + username);
+                    showToast('登录成功，欢迎 ' + (loginMode === 'account' ? username : '临时用户'));
                 } else {
                     errorEl.textContent = data.message || '登录失败，请重试';
                     errorEl.style.display = 'block';
@@ -1210,7 +1309,9 @@
             currentUser = null;
             fileSha = null;
             notifySha = null;
+            // 清空密码和临时密钥
             document.getElementById('passwordInput').value = '';
+            document.getElementById('tokenInput').value = '';
             checkRememberedLogin();
         }
 
@@ -1218,11 +1319,16 @@
         // 🎯 事件绑定
         // ============================================================
         document.getElementById('loginBtn').addEventListener('click', doLogin);
+
+        // 回车键登录
         document.getElementById('passwordInput').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') doLogin();
+            if (e.key === 'Enter' && loginMode === 'account') doLogin();
         });
         document.getElementById('usernameInput').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') doLogin();
+            if (e.key === 'Enter' && loginMode === 'account') doLogin();
+        });
+        document.getElementById('tokenInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && loginMode === 'token') doLogin();
         });
 
         document.getElementById('logoutBtn').addEventListener('click', function() {
@@ -1290,16 +1396,9 @@
         // 🚀 初始化
         // ============================================================
         function init() {
+            // 默认显示账号登录
+            switchLoginMode('account');
             checkRememberedLogin();
-            var savedUser = localStorage.getItem('editor_username');
-            var savedPass = localStorage.getItem('editor_password');
-            if (savedUser && savedPass) {
-                document.getElementById('usernameInput').value = savedUser;
-                document.getElementById('passwordInput').value = savedPass;
-                document.getElementById('rememberLogin').checked = true;
-                // 自动登录
-                doLogin();
-            }
         }
         init();
     </script>
