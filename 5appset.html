@@ -30,7 +30,6 @@
         .login-box button { width: 100%; padding: 12px; background: #2b4c8a; color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; }
         .login-box button:active { background: #1e3c72; }
         .login-error { color: #e74c3c; font-size: 0.8rem; margin-top: 8px; display: none; }
-        .login-debug { color: #6b7280; font-size: 0.7rem; margin-top: 8px; word-break: break-all; background: #f0f2f5; padding: 6px 10px; border-radius: 4px; display: none; }
 
         .main-content { max-width: 900px; margin: 0 auto; padding: 16px; display: none; }
 
@@ -145,7 +144,6 @@
             </div>
             <button id="loginBtn">登录</button>
             <div class="login-error" id="loginError">登录失败，请重试</div>
-            <div class="login-debug" id="loginDebug"></div>
         </div>
     </div>
 
@@ -191,7 +189,7 @@
 
     <script>
         // ============================================================
-        // 🚀 配置区（✅ 已修复 WORKER_BASE，加上 /v1）
+        // 🚀 配置区
         // ============================================================
         var WORKER_BASE = 'https://api.luckynum.top/v1';
 
@@ -1187,14 +1185,12 @@
 
         async function doLogin() {
             var errorEl = document.getElementById('loginError');
-            var debugEl = document.getElementById('loginDebug');
             var btn = document.getElementById('loginBtn');
             var remember = document.getElementById('rememberLogin').checked;
 
             btn.disabled = true;
             btn.textContent = '登录中...';
             errorEl.style.display = 'none';
-            debugEl.style.display = 'none';
 
             try {
                 var username = '',
@@ -1223,20 +1219,13 @@
                     password = tempToken;
                 }
 
-                debugEl.textContent = '📤 发送: username=' + username + ', password=' + password.substring(0, 4) + '***';
-                debugEl.style.display = 'block';
-
                 var response = await fetch(WORKER_BASE + '/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username: username, password: password })
                 });
 
-                var responseText = await response.text();
-                debugEl.textContent = '📥 响应: ' + response.status + ' ' + responseText.substring(0, 200);
-                debugEl.style.display = 'block';
-
-                var data = JSON.parse(responseText);
+                var data = await response.json();
 
                 if (data.success) {
                     sessionToken = data.token;
@@ -1273,10 +1262,8 @@
                     errorEl.style.display = 'block';
                 }
             } catch (e) {
-                errorEl.textContent = '网络错误: ' + e.message;
+                errorEl.textContent = '网络错误，请检查连接';
                 errorEl.style.display = 'block';
-                debugEl.textContent = '❌ 异常: ' + e.message;
-                debugEl.style.display = 'block';
                 console.error('登录错误:', e);
             } finally {
                 btn.disabled = false;
