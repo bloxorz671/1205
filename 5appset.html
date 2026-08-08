@@ -189,7 +189,7 @@
 
     <script>
         // ============================================================
-        // 🚀 配置区
+        // 配置区
         // ============================================================
         var WORKER_BASE = 'https://api.luckynum.top/v1';
 
@@ -203,6 +203,7 @@
         var sessionToken = null;
         var currentUser = null;
         var loginMode = 'account';
+        var isTokenMode = false;
         var fileSha = null;
         var notifySha = null;
         var groupOrder = ['其他应用'];
@@ -316,14 +317,25 @@
         function generateNotifyContent() { return notifyList.map(function(item){ return item.raw; }).join('\n'); }
 
         // ============================================================
-        // 🌐 通过 Worker 代理调用 GitHub API
+        // API 调用
         // ============================================================
+        function githubApiHeaders() {
+            var h = {};
+            if (isTokenMode) {
+                h['Authorization'] = 'Bearer ' + sessionToken;
+            }
+            h['Content-Type'] = 'application/json';
+            return h;
+        }
+
         async function githubFetch(path, options) {
-            var url = WORKER_BASE + '/api/github' + path;
-            var headers = {
-                'Authorization': 'Bearer ' + sessionToken,
-                'Content-Type': 'application/json',
-            };
+            var url;
+            if (isTokenMode) {
+                url = 'https://api.github.com/repos/' + GITHUB_OWNER + '/' + GITHUB_REPO + path;
+            } else {
+                url = WORKER_BASE + '/api/github' + path;
+            }
+            var headers = githubApiHeaders();
             var response = await fetch(url, {
                 method: options.method || 'GET',
                 headers: headers,
@@ -337,7 +349,7 @@
         }
 
         // ============================================================
-        // 📥 加载配置（修复中文乱码）
+        // 加载配置
         // ============================================================
         async function loadRemoteConfig() {
             try {
@@ -366,7 +378,7 @@
         }
 
         // ============================================================
-        // 💾 保存配置
+        // 保存配置
         // ============================================================
         async function saveToGitHub() {
             var content = generateFileContent();
@@ -401,7 +413,7 @@
         }
 
         // ============================================================
-        // 📤 上传文件
+        // 上传文件
         // ============================================================
         async function checkFileExists(fullPath) {
             try {
@@ -471,7 +483,7 @@
         }
 
         // ============================================================
-        // 🖌️ 渲染函数
+        // 渲染函数
         // ============================================================
         function renderGroups() {
             var container = document.getElementById('groupList');
@@ -672,7 +684,7 @@
         }
 
         // ============================================================
-        // 📝 弹窗功能
+        // 弹窗功能
         // ============================================================
         function openAddNotifyModal() {
             var overlay = document.createElement('div');
@@ -1145,7 +1157,7 @@
         }
 
         // ============================================================
-        // 🔐 登录逻辑（双模式，无前端校验）
+        // 登录逻辑
         // ============================================================
         function checkRememberedLogin() {
             var savedUser = localStorage.getItem('editor_username');
@@ -1193,14 +1205,39 @@
             errorEl.style.display = 'none';
 
             try {
-                var username = '',
-                    password = '';
-
                 if (loginMode === 'account') {
-                    username = document.getElementById('usernameInput').value.trim();
-                    password = document.getElementById('passwordInput').value.trim();
+                    var username = document.getElementById('usernameInput').value.trim();
+                    var password = document.getElementById('passwordInput').value.trim();
                     if (!username || !password) {
                         errorEl.textContent = '请输入用户名和密码';
+                        errorEl.style.display = 'block';
+                        btn.disabled = false;
+                        btn.textContent = '登录';
+                        return;
+                    }
+                    var response = await fetch(WORKER_BASE + '/api/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username: username, password: password })
+                    });
+                    var data = await response.json();
+                    if (data.success) {
+                        sessionToken = data.token;
+                        currentUser = data.username;
+                        isTokenMode = false;
+                        if (remember) {
+                            localStorage.setItem('editor_login_mode', 'account');
+                            localStorage.setItem('editor_username', username);
+                            localStorage.setItem('editor_password', password);
+                            localStorage.removeItem('editor_temp_token');
+                        } else {
+                            localStorage.removeItem('editor_login_mode');
+                            localStorage.removeItem('editor_username');
+                            localStorage.removeItem('editor_password');
+                            localStorage.removeItem('editor_temp_token');
+                        }
+                    } else {
+                        errorEl.textContent = data.message || '登录失败，请重试';
                         errorEl.style.display = 'block';
                         btn.disabled = false;
                         btn.textContent = '登录';
@@ -1215,52 +1252,40 @@
                         btn.textContent = '登录';
                         return;
                     }
-                    username = 'temp';
-                    password = tempToken;
-                }
-
-                var response = await fetch(WORKER_BASE + '/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: username, password: password })
-                });
-
-                var data = await response.json();
-
-                if (data.success) {
-                    sessionToken = data.token;
-                    currentUser = data.username;
-
+                    var ghResponse = await fetch('https://api.github.com/user', {
+                        headers: { 'Authorization': 'Bearer ' + tempToken }
+                    });
+                    if (!ghResponse.ok) {
+                        errorEl.textContent = '密钥无效，请检查后重试';
+                        errorEl.style.display = 'block';
+                        btn.disabled = false;
+                        btn.textContent = '登录';
+                        return;
+                    }
+                    sessionToken = tempToken;
+                    currentUser = '临时用户';
+                    isTokenMode = true;
                     if (remember) {
-                        localStorage.setItem('editor_login_mode', loginMode);
-                        if (loginMode === 'account') {
-                            localStorage.setItem('editor_username', username);
-                            localStorage.setItem('editor_password', password);
-                            localStorage.removeItem('editor_temp_token');
-                        } else {
-                            localStorage.setItem('editor_temp_token', password);
-                            localStorage.removeItem('editor_username');
-                            localStorage.removeItem('editor_password');
-                        }
+                        localStorage.setItem('editor_login_mode', 'token');
+                        localStorage.setItem('editor_temp_token', tempToken);
+                        localStorage.removeItem('editor_username');
+                        localStorage.removeItem('editor_password');
                     } else {
                         localStorage.removeItem('editor_login_mode');
                         localStorage.removeItem('editor_username');
                         localStorage.removeItem('editor_password');
                         localStorage.removeItem('editor_temp_token');
                     }
-
-                    await Promise.all([loadRemoteConfig(), loadRemoteNotify()]);
-                    document.getElementById('loginOverlay').style.display = 'none';
-                    document.getElementById('mainContent').style.display = 'block';
-                    renderGroups();
-                    renderCarousels();
-                    renderApps();
-                    renderNotifyListUI();
-                    showToast('登录成功，欢迎 ' + (loginMode === 'account' ? username : '临时用户'));
-                } else {
-                    errorEl.textContent = data.message || '登录失败，请重试';
-                    errorEl.style.display = 'block';
                 }
+
+                await Promise.all([loadRemoteConfig(), loadRemoteNotify()]);
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                renderGroups();
+                renderCarousels();
+                renderApps();
+                renderNotifyListUI();
+                showToast('登录成功，欢迎 ' + (loginMode === 'account' ? currentUser : '临时用户'));
             } catch (e) {
                 errorEl.textContent = '网络错误，请检查连接';
                 errorEl.style.display = 'block';
@@ -1272,19 +1297,20 @@
         }
 
         function doLogout() {
+            localStorage.removeItem('editor_login_mode');
             document.getElementById('loginOverlay').style.display = 'flex';
             document.getElementById('mainContent').style.display = 'none';
             sessionToken = null;
             currentUser = null;
+            isTokenMode = false;
             fileSha = null;
             notifySha = null;
             document.getElementById('passwordInput').value = '';
             document.getElementById('tokenInput').value = '';
-            checkRememberedLogin();
         }
 
         // ============================================================
-        // 🎯 事件绑定
+        // 事件绑定
         // ============================================================
         document.getElementById('loginBtn').addEventListener('click', doLogin);
 
@@ -1360,7 +1386,7 @@
         document.getElementById('addNotifyBtn').addEventListener('click', openAddNotifyModal);
 
         // ============================================================
-        // 🚀 初始化
+        // 初始化
         // ============================================================
         function init() {
             switchLoginMode('account');
