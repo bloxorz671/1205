@@ -196,13 +196,6 @@
         // ============================================================
         var WORKER_BASE = 'https://api.luckynum.top/v1';
 
-        // 账号密码登录的用户列表（与 Worker 保持一致）
-        var ACCOUNT_USERS = [
-            { username: 'zhangsan', password: 'pass123' },
-            { username: 'lisi', password: 'pass456' },
-            { username: 'wangwu', password: 'pass789' },
-        ];
-
         var GITHUB_OWNER = 'bloxorz671';
         var GITHUB_REPO = '1205';
         var GITHUB_PATH = '5app.txt';
@@ -212,7 +205,7 @@
 
         var sessionToken = null;
         var currentUser = null;
-        var loginMode = 'account'; // 'account' 或 'token'
+        var loginMode = 'account';
         var fileSha = null;
         var notifySha = null;
         var groupOrder = ['其他应用'];
@@ -353,7 +346,7 @@
             try {
                 var response = await githubFetch('/contents/' + GITHUB_PATH, { method: 'GET' });
                 var data = await response.json();
-                // ✅ 修复中文乱码：decodeURIComponent(escape(...))
+                // 修复中文乱码：decodeURIComponent(escape(...))
                 var content = decodeURIComponent(escape(atob(data.content)));
                 fileSha = data.sha;
                 parseAppTxt(content);
@@ -367,7 +360,7 @@
             try {
                 var response = await githubFetch('/contents/' + NOTIFY_PATH, { method: 'GET' });
                 var data = await response.json();
-                // ✅ 修复中文乱码：decodeURIComponent(escape(...))
+                // 修复中文乱码：decodeURIComponent(escape(...))
                 var content = decodeURIComponent(escape(atob(data.content)));
                 notifySha = data.sha;
                 parseNotifyTxt(content);
@@ -1157,7 +1150,7 @@
         }
 
         // ============================================================
-        // 🔐 登录逻辑（双模式）
+        // 🔐 登录逻辑（双模式，无前端校验）
         // ============================================================
         function checkRememberedLogin() {
             var savedUser = localStorage.getItem('editor_username');
@@ -1169,9 +1162,7 @@
                 document.getElementById('usernameInput').value = savedUser;
                 document.getElementById('passwordInput').value = savedPass;
                 document.getElementById('rememberLogin').checked = true;
-                // 切换到账号模式
                 switchLoginMode('account');
-                // 自动登录
                 setTimeout(doLogin, 100);
             } else if (savedMode === 'token' && savedToken) {
                 document.getElementById('tokenInput').value = savedToken;
@@ -1183,18 +1174,14 @@
 
         function switchLoginMode(mode) {
             loginMode = mode;
-            // 切换按钮样式
             document.querySelectorAll('#loginModeSwitch button').forEach(function(btn) {
                 btn.classList.toggle('active', btn.dataset.mode === mode);
             });
-            // 切换输入框显示
             document.getElementById('accountLogin').classList.toggle('active', mode === 'account');
             document.getElementById('tokenLogin').classList.toggle('active', mode === 'token');
-            // 清空错误
             document.getElementById('loginError').style.display = 'none';
         }
 
-        // 登录模式切换事件
         document.querySelectorAll('#loginModeSwitch button').forEach(function(btn) {
             btn.addEventListener('click', function() {
                 switchLoginMode(this.dataset.mode);
@@ -1224,17 +1211,8 @@
                         btn.textContent = '登录';
                         return;
                     }
-                    // 验证账号密码是否在列表中
-                    var user = ACCOUNT_USERS.find(u => u.username === username && u.password === password);
-                    if (!user) {
-                        errorEl.textContent = '用户名或密码错误';
-                        errorEl.style.display = 'block';
-                        btn.disabled = false;
-                        btn.textContent = '登录';
-                        return;
-                    }
+                    // ✅ 前端不再校验，直接透传给 Worker
                 } else {
-                    // 临时密钥模式：直接使用输入的 Token
                     var tempToken = document.getElementById('tokenInput').value.trim();
                     if (!tempToken) {
                         errorEl.textContent = '请输入临时密钥';
@@ -1243,12 +1221,10 @@
                         btn.textContent = '登录';
                         return;
                     }
-                    // 用临时 Token 作为密码，用户名固定为 'temp'
                     username = 'temp';
                     password = tempToken;
                 }
 
-                // 调用 Worker 登录接口（Worker 只验证账号密码）
                 var response = await fetch(WORKER_BASE + '/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1261,7 +1237,6 @@
                     sessionToken = data.token;
                     currentUser = data.username;
 
-                    // 记住登录
                     if (remember) {
                         localStorage.setItem('editor_login_mode', loginMode);
                         if (loginMode === 'account') {
@@ -1309,7 +1284,6 @@
             currentUser = null;
             fileSha = null;
             notifySha = null;
-            // 清空密码和临时密钥
             document.getElementById('passwordInput').value = '';
             document.getElementById('tokenInput').value = '';
             checkRememberedLogin();
@@ -1320,7 +1294,6 @@
         // ============================================================
         document.getElementById('loginBtn').addEventListener('click', doLogin);
 
-        // 回车键登录
         document.getElementById('passwordInput').addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && loginMode === 'account') doLogin();
         });
@@ -1396,7 +1369,6 @@
         // 🚀 初始化
         // ============================================================
         function init() {
-            // 默认显示账号登录
             switchLoginMode('account');
             checkRememberedLogin();
         }
