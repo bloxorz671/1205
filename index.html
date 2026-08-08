@@ -324,7 +324,8 @@
     var isMac = /Macintosh/i.test(currentUA) && !isIOS;
     var isPC = !/Android|iPhone|iPad|iPod|Mobile/i.test(currentUA);
     var isNonAndroid = isIOS || isPC || isMac;
-    var isWeChat = /MicroMessenger/i.test(currentUA);
+    //var isWeChat = /MicroMessenger/i.test(currentUA);
+    var isWeChat = /wechatcanuse/i.test(currentUA);
     // 鸿蒙检测
     var isHarmonyOS = /OpenHarmony/i.test(currentUA);
     var harmonyVersion = 0;
