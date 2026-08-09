@@ -203,7 +203,7 @@
         var sessionToken = null;
         var currentUser = null;
         var loginMode = 'account';
-        var isTokenMode = false; // true = 临时密钥模式（直连GitHub），false = 账号密码模式（走Worker）
+        var isTokenMode = false;
         var fileSha = null;
         var notifySha = null;
         var groupOrder = ['其他应用'];
@@ -317,7 +317,7 @@
         function generateNotifyContent() { return notifyList.map(function(item){ return item.raw; }).join('\n'); }
 
         // ============================================================
-        // ✅ 核心修复：githubFetch 支持两种模式
+        // ✅ githubFetch 支持两种模式
         // ============================================================
         async function githubFetch(path, options) {
             var url, headers, response;
@@ -1162,7 +1162,7 @@
         }
 
         // ============================================================
-        // ✅ 修复：登录逻辑（记住账号功能完整）
+        // ✅ 登录逻辑：记住密码后只填充，不自动登录
         // ============================================================
         function checkRememberedLogin() {
             var savedMode = localStorage.getItem('editor_login_mode');
@@ -1174,7 +1174,7 @@
                     document.getElementById('passwordInput').value = savedPass;
                     document.getElementById('rememberLogin').checked = true;
                     switchLoginMode('account');
-                    setTimeout(doLogin, 300);
+                    // ✅ 不自动登录，用户手动点击“登录”按钮
                 }
             } else if (savedMode === 'token') {
                 var savedToken = localStorage.getItem('editor_temp_token');
@@ -1182,7 +1182,7 @@
                     document.getElementById('tokenInput').value = savedToken;
                     document.getElementById('rememberLogin').checked = true;
                     switchLoginMode('token');
-                    setTimeout(doLogin, 300);
+                    // ✅ 不自动登录，用户手动点击“登录”按钮
                 }
             }
         }
@@ -1200,7 +1200,6 @@
         document.querySelectorAll('#loginModeSwitch button').forEach(function(btn) {
             btn.addEventListener('click', function() {
                 switchLoginMode(this.dataset.mode);
-                // 切换模式时清空错误提示
                 document.getElementById('loginError').style.display = 'none';
             });
         });
@@ -1235,7 +1234,6 @@
                         sessionToken = data.token;
                         currentUser = data.username;
                         isTokenMode = false;
-                        // ✅ 记住账号密码
                         if (remember) {
                             localStorage.setItem('editor_login_mode', 'account');
                             localStorage.setItem('editor_username', username);
@@ -1263,7 +1261,6 @@
                         btn.textContent = '登录';
                         return;
                     }
-                    // 验证 GitHub Token 是否有效
                     var ghResponse = await fetch('https://api.github.com/user', {
                         headers: { 'Authorization': 'Bearer ' + tempToken }
                     });
@@ -1277,7 +1274,6 @@
                     sessionToken = tempToken;
                     currentUser = '临时用户';
                     isTokenMode = true;
-                    // ✅ 记住临时密钥
                     if (remember) {
                         localStorage.setItem('editor_login_mode', 'token');
                         localStorage.setItem('editor_temp_token', tempToken);
@@ -1291,7 +1287,6 @@
                     }
                 }
 
-                // 加载配置
                 await Promise.all([loadRemoteConfig(), loadRemoteNotify()]);
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
@@ -1310,23 +1305,16 @@
             }
         }
 
-        // ============================================================
-        // ✅ 修复：退出登录时清除所有状态
-        // ============================================================
         function doLogout() {
-            // 清除所有状态
             sessionToken = null;
             currentUser = null;
             isTokenMode = false;
             fileSha = null;
             notifySha = null;
-            // 显示登录界面
             document.getElementById('loginOverlay').style.display = 'flex';
             document.getElementById('mainContent').style.display = 'none';
-            // 清空输入框（但保留记住的凭证，由 checkRememberedLogin 重新填充）
             document.getElementById('passwordInput').value = '';
             document.getElementById('tokenInput').value = '';
-            // 重新检查记住的登录
             checkRememberedLogin();
         }
 
