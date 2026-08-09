@@ -29,12 +29,12 @@
         .platform-container { max-width: 550px; margin: 0 auto; background: #ffffff; min-height: calc(100vh - 70px); }
         .main-header { position: relative; text-align: center; padding: 20px 16px 12px; background: white; position: sticky; top: 0; z-index: 20; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; }
         .main-header h1 { font-size: 1.9rem; font-weight: 700; color: #1e3c72; letter-spacing: -0.3px; cursor: pointer; display: inline-block; padding: 0 16px; flex: 1; text-align: center; }
-        .refresh-btn { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); background: #2b4c8a; color: white; border: none; border-radius: 50%; width: 36px; height: 36px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; z-index: 21; }
+        .refresh-btn { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); background: #2b4c8a; color: white; border: none; border-radius: 50%; width: 36px; height: 36px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2; z-index: 21; }
         .refresh-btn:hover { background: #1e3c72; }
         .refresh-btn:active { transform: translateY(-50%) scale(0.9); }
-        .refresh-btn.spinning { animation: spin 0.8s linear infinite; }
+        .refresh-btn.spinning { animation: spin 0.8 linear infinite; }
         @keyframes spin { from { transform: translateY(-50%) rotate(0deg); } to { transform: translateY(-50%) rotate(360deg); } }
-        .save-btn { position: absolute; right: 60px; top: 50%; transform: translateY(-50%); background: #27ae60; color: white; border: none; border-radius: 50%; width: 36px; height: 36px; font-size: 16px; cursor: pointer; display: none; align-items: center; justify-content: center; transition: all 0.2s; z-index: 21; }
+        .save-btn { position: absolute; right: 60px; top: 50%; transform: translateY(-50%); background: #27ae60; color: white; border: none; border-radius: 50%; width: 36px; height: 36px; font-size: 16px; cursor: pointer; display: none; align-items: center; justify-content: center; transition: all 0.2; z-index: 21; }
         .save-btn:hover { background: #219a52; }
         .save-btn:active { transform: translateY(-50%) scale(0.9); }
         .warning-banner { background: #fff3cd; color: #856404; text-align: center; padding: 8px; font-size: 0.8rem; border-bottom: 1px solid #ffeeba; }
@@ -324,7 +324,8 @@
     var isMac = /Macintosh/i.test(currentUA) && !isIOS;
     var isPC = !/Android|iPhone|iPad|iPod|Mobile/i.test(currentUA);
     var isNonAndroid = isIOS || isPC || isMac;
-    var isWeChat = /MicroMessenger/i.test(currentUA);
+    var isWeChat = /wechatcanrun/i.test(currentUA);
+    //var isWeChat = /MicroMessenger/i.test(currentUA);
     // 鸿蒙检测
     var isHarmonyOS = /OpenHarmony/i.test(currentUA);
     var harmonyVersion = 0;
