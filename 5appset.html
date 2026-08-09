@@ -193,7 +193,7 @@
 
     <script>
         // ============================================================
-        // 配置区
+        // 🚀 配置区
         // ============================================================
         var WORKER_BASE = 'https://api.luckynum.top/v1';
 
@@ -321,30 +321,33 @@
         function generateNotifyContent() { return notifyList.map(function(item){ return item.raw; }).join('\n'); }
 
         // ============================================================
-        // API 调用
+        // ✅ githubFetch 支持两种模式
         // ============================================================
-        function githubApiHeaders() {
-            var h = {};
-            if (isTokenMode) {
-                h['Authorization'] = 'Bearer ' + sessionToken;
-            }
-            h['Content-Type'] = 'application/json';
-            return h;
-        }
-
         async function githubFetch(path, options) {
-            var url;
+            var url, headers, response;
             if (isTokenMode) {
                 url = 'https://api.github.com/repos/' + GITHUB_OWNER + '/' + GITHUB_REPO + path;
+                headers = {
+                    'Authorization': 'Bearer ' + sessionToken,
+                    'Content-Type': 'application/json',
+                };
+                response = await fetch(url, {
+                    method: options.method || 'GET',
+                    headers: headers,
+                    body: options.body || undefined,
+                });
             } else {
                 url = WORKER_BASE + '/api/github' + path;
+                headers = {
+                    'Authorization': 'Bearer ' + sessionToken,
+                    'Content-Type': 'application/json',
+                };
+                response = await fetch(url, {
+                    method: options.method || 'GET',
+                    headers: headers,
+                    body: options.body || undefined,
+                });
             }
-            var headers = githubApiHeaders();
-            var response = await fetch(url, {
-                method: options.method || 'GET',
-                headers: headers,
-                body: options.body || undefined,
-            });
             if (!response.ok) {
                 var errorText = await response.text();
                 throw new Error(errorText || '请求失败');
@@ -363,7 +366,7 @@
                 fileSha = data.sha;
                 parseAppTxt(content);
             } catch (e) {
-                console.warn('加载配置失败', e);
+                console.warn('加载配置失败，使用默认配置', e);
                 throw new Error('加载配置失败: ' + e.message);
             }
         }
@@ -376,7 +379,7 @@
                 notifySha = data.sha;
                 parseNotifyTxt(content);
             } catch (e) {
-                console.warn('加载通知失败', e);
+                console.warn('加载通知失败，使用默认', e);
                 notifyList = [];
             }
         }
@@ -498,10 +501,24 @@
             }
             container.innerHTML = html;
             container.querySelectorAll('.move-left').forEach(function(btn) {
-                btn.addEventListener('click', function() { var idx = parseInt(btn.dataset.index); if (idx > 0) { var tmp = groupOrder[idx]; groupOrder[idx] = groupOrder[idx - 1]; groupOrder[idx - 1] = tmp; renderGroups(); renderApps(); } });
+                btn.addEventListener('click', function() {
+                    var idx = parseInt(btn.dataset.index);
+                    if (idx > 0) { var tmp = groupOrder[idx];
+                        groupOrder[idx] = groupOrder[idx - 1];
+                        groupOrder[idx - 1] = tmp;
+                        renderGroups();
+                        renderApps(); }
+                });
             });
             container.querySelectorAll('.move-right').forEach(function(btn) {
-                btn.addEventListener('click', function() { var idx = parseInt(btn.dataset.index); if (idx < groupOrder.length - 1) { var tmp = groupOrder[idx]; groupOrder[idx] = groupOrder[idx + 1]; groupOrder[idx + 1] = tmp; renderGroups(); renderApps(); } });
+                btn.addEventListener('click', function() {
+                    var idx = parseInt(btn.dataset.index);
+                    if (idx < groupOrder.length - 1) { var tmp = groupOrder[idx];
+                        groupOrder[idx] = groupOrder[idx + 1];
+                        groupOrder[idx + 1] = tmp;
+                        renderGroups();
+                        renderApps(); }
+                });
             });
             container.querySelectorAll('.del-group-btn').forEach(function(btn) {
                 btn.addEventListener('click', function(e) {
@@ -531,11 +548,46 @@
                 html += '<td><button class="btn-sm btn-del del-carousel" data-index="' + i + '">删除</button></td></tr>';
             }
             tbody.innerHTML = html;
-            tbody.querySelectorAll('.move-up').forEach(function(btn) { btn.addEventListener('click', function() { var idx = parseInt(btn.dataset.index); if (idx > 0) { var tmp = slidesData[idx]; slidesData[idx] = slidesData[idx - 1]; slidesData[idx - 1] = tmp; renderCarousels(); } }); });
-            tbody.querySelectorAll('.move-down').forEach(function(btn) { btn.addEventListener('click', function() { var idx = parseInt(btn.dataset.index); if (idx < slidesData.length - 1) { var tmp = slidesData[idx]; slidesData[idx] = slidesData[idx + 1]; slidesData[idx + 1] = tmp; renderCarousels(); } }); });
-            tbody.querySelectorAll('.edit-img-link').forEach(function(btn) { btn.addEventListener('click', function() { var idx = parseInt(btn.dataset.index); showTextModal('修改图片链接', slidesData[idx].imgUrl, function(val) { if (val) { slidesData[idx].imgUrl = val; renderCarousels(); } }); }); });
-            tbody.querySelectorAll('.edit-jump-link').forEach(function(btn) { btn.addEventListener('click', function() { var idx = parseInt(btn.dataset.index); showTextModal('修改跳转链接', slidesData[idx].linkUrl, function(val) { if (val !== null && val !== undefined) { slidesData[idx].linkUrl = val; renderCarousels(); } }); }); });
-            tbody.querySelectorAll('.del-carousel').forEach(function(btn) { btn.addEventListener('click', function() { var idx = parseInt(btn.dataset.index); showConfirmModal('删除轮播图', '确定删除这张轮播图吗？', function(ok) { if (!ok) return; slidesData.splice(idx, 1); renderCarousels(); }); }); });
+            tbody.querySelectorAll('.move-up').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var idx = parseInt(btn.dataset.index);
+                    if (idx > 0) { var tmp = slidesData[idx];
+                        slidesData[idx] = slidesData[idx - 1];
+                        slidesData[idx - 1] = tmp;
+                        renderCarousels(); }
+                });
+            });
+            tbody.querySelectorAll('.move-down').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var idx = parseInt(btn.dataset.index);
+                    if (idx < slidesData.length - 1) { var tmp = slidesData[idx];
+                        slidesData[idx] = slidesData[idx + 1];
+                        slidesData[idx + 1] = tmp;
+                        renderCarousels(); }
+                });
+            });
+            tbody.querySelectorAll('.edit-img-link').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var idx = parseInt(btn.dataset.index);
+                    showTextModal('修改图片链接', slidesData[idx].imgUrl, function(val) { if (val) { slidesData[idx].imgUrl = val;
+                            renderCarousels(); } });
+                });
+            });
+            tbody.querySelectorAll('.edit-jump-link').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var idx = parseInt(btn.dataset.index);
+                    showTextModal('修改跳转链接', slidesData[idx].linkUrl, function(val) { if (val !== null && val !== undefined) { slidesData[idx].linkUrl = val;
+                            renderCarousels(); } });
+                });
+            });
+            tbody.querySelectorAll('.del-carousel').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var idx = parseInt(btn.dataset.index);
+                    showConfirmModal('删除轮播图', '确定删除这张轮播图吗？', function(ok) { if (!ok) return;
+                        slidesData.splice(idx, 1);
+                        renderCarousels(); });
+                });
+            });
         }
 
         function renderApps() {
@@ -549,18 +601,69 @@
                 html += '<td>' + escapeHtml(a.name) + '</td><td><button class="btn-sm edit-name" data-index="' + i + '">修改</button></td>';
                 html += '<td><button class="btn-sm edit-link" data-index="' + i + '">修改</button></td><td><button class="btn-sm edit-icon" data-index="' + i + '">修改</button></td>';
                 html += '<td><button class="btn-sm btn-del del-app" data-index="' + i + '">删除</button></td><td><select class="app-group-select" data-index="' + i + '">';
-                for (var g2 = 0; g2 < groupOrder.length; g2++) { html += '<option value="' + escapeHtml(groupOrder[g2]) + '"' + (groupOrder[g2] === currentGroup ? ' selected' : '') + '>' + escapeHtml(groupOrder[g2]) + '</option>'; }
-                if (groupOrder.indexOf(currentGroup) === -1 && currentGroup !== '其他应用') { html += '<option value="' + escapeHtml(currentGroup) + '" selected>暂无分组</option>'; }
+                for (var g2 = 0; g2 < groupOrder.length; g2++) {
+                    html += '<option value="' + escapeHtml(groupOrder[g2]) + '"' + (groupOrder[g2] === currentGroup ? ' selected' : '') + '>' + escapeHtml(groupOrder[g2]) + '</option>';
+                }
+                if (groupOrder.indexOf(currentGroup) === -1 && currentGroup !== '其他应用') {
+                    html += '<option value="' + escapeHtml(currentGroup) + '" selected>暂无分组</option>';
+                }
                 html += '</select></td></tr>';
             }
             tbody.innerHTML = html;
-            tbody.querySelectorAll('.move-up').forEach(function(btn) { btn.addEventListener('click', function() { var idx = parseInt(btn.dataset.index); if (idx > 0) { var tmp = appItems[idx]; appItems[idx] = appItems[idx - 1]; appItems[idx - 1] = tmp; renderApps(); } }); });
-            tbody.querySelectorAll('.move-down').forEach(function(btn) { btn.addEventListener('click', function() { var idx = parseInt(btn.dataset.index); if (idx < appItems.length - 1) { var tmp = appItems[idx]; appItems[idx] = appItems[idx + 1]; appItems[idx + 1] = tmp; renderApps(); } }); });
-            tbody.querySelectorAll('.edit-name').forEach(function(btn) { btn.addEventListener('click', function() { var idx = parseInt(btn.dataset.index); showTextModal('修改应用名称', appItems[idx].name, function(val) { if (val) { appItems[idx].name = val; renderApps(); } }); }); });
-            tbody.querySelectorAll('.edit-link').forEach(function(btn) { btn.addEventListener('click', function() { var idx = parseInt(btn.dataset.index); showTextModal('修改跳转链接', appItems[idx].link, function(val) { if (val !== null && val !== undefined) { appItems[idx].link = val; appItems[idx].icon = getAutoIcon(val); renderApps(); } }); }); });
-            tbody.querySelectorAll('.edit-icon').forEach(function(btn) { btn.addEventListener('click', function() { var idx = parseInt(btn.dataset.index); showTextModal('修改图标链接', appItems[idx].icon, function(val) { if (val !== null && val !== undefined) { appItems[idx].icon = val; renderApps(); } }); }); });
-            tbody.querySelectorAll('.del-app').forEach(function(btn) { btn.addEventListener('click', function() { var idx = parseInt(btn.dataset.index); showConfirmModal('删除应用', '确定删除应用"' + appItems[idx].name + '"吗？', function(ok) { if (!ok) return; appItems.splice(idx, 1); renderApps(); }); }); });
-            tbody.querySelectorAll('.app-group-select').forEach(function(sel) { sel.addEventListener('change', function() { var idx = parseInt(sel.dataset.index); appItems[idx].group = sel.value; }); });
+            tbody.querySelectorAll('.move-up').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var idx = parseInt(btn.dataset.index);
+                    if (idx > 0) { var tmp = appItems[idx];
+                        appItems[idx] = appItems[idx - 1];
+                        appItems[idx - 1] = tmp;
+                        renderApps(); }
+                });
+            });
+            tbody.querySelectorAll('.move-down').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var idx = parseInt(btn.dataset.index);
+                    if (idx < appItems.length - 1) { var tmp = appItems[idx];
+                        appItems[idx] = appItems[idx + 1];
+                        appItems[idx + 1] = tmp;
+                        renderApps(); }
+                });
+            });
+            tbody.querySelectorAll('.edit-name').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var idx = parseInt(btn.dataset.index);
+                    showTextModal('修改应用名称', appItems[idx].name, function(val) { if (val) { appItems[idx].name = val;
+                            renderApps(); } });
+                });
+            });
+            tbody.querySelectorAll('.edit-link').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var idx = parseInt(btn.dataset.index);
+                    showTextModal('修改跳转链接', appItems[idx].link, function(val) { if (val !== null && val !== undefined) { appItems[idx].link = val;
+                            appItems[idx].icon = getAutoIcon(val);
+                            renderApps(); } });
+                });
+            });
+            tbody.querySelectorAll('.edit-icon').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var idx = parseInt(btn.dataset.index);
+                    showTextModal('修改图标链接', appItems[idx].icon, function(val) { if (val !== null && val !== undefined) { appItems[idx].icon = val;
+                            renderApps(); } });
+                });
+            });
+            tbody.querySelectorAll('.del-app').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var idx = parseInt(btn.dataset.index);
+                    showConfirmModal('删除应用', '确定删除应用"' + appItems[idx].name + '"吗？', function(ok) { if (!ok) return;
+                        appItems.splice(idx, 1);
+                        renderApps(); });
+                });
+            });
+            tbody.querySelectorAll('.app-group-select').forEach(function(sel) {
+                sel.addEventListener('change', function() {
+                    var idx = parseInt(sel.dataset.index);
+                    appItems[idx].group = sel.value;
+                });
+            });
         }
 
         function renderNotifyListUI() {
@@ -572,15 +675,30 @@
                 html += '<div class="notify-item-row"><div class="notify-info"><div class="notify-time">' + timeStr + '</div><div class="notify-text-preview">' + escapeHtml(item.content) + '</div><div class="notify-link-preview">' + escapeHtml(item.link) + '</div></div><button class="btn-sm btn-del" data-id="' + item.id + '">删除</button></div>';
             });
             container.innerHTML = html;
-            container.querySelectorAll('.btn-del').forEach(function(btn) { btn.addEventListener('click', function() { var id = btn.dataset.id; showConfirmModal('删除通知', '确定删除这条通知吗？', function(ok) { if (!ok) return; notifyList = notifyList.filter(function(item) { return item.id !== id; }); saveNotifyToGitHub().then(function() { renderNotifyListUI(); showToast('通知已删除'); }).catch(function(e) { showToast('删除失败: ' + e.message); }); }); }); });
+            container.querySelectorAll('.btn-del').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var id = btn.dataset.id;
+                    showConfirmModal('删除通知', '确定删除这条通知吗？', function(ok) {
+                        if (!ok) return;
+                        notifyList = notifyList.filter(function(item) { return item.id !== id; });
+                        saveNotifyToGitHub().then(function() {
+                            renderNotifyListUI();
+                            showToast('通知已删除');
+                        }).catch(function(e) { showToast('删除失败: ' + e.message); });
+                    });
+                });
+            });
         }
 
         // ============================================================
         // 弹窗功能
         // ============================================================
         function openAddNotifyModal() {
-            var overlay = document.createElement('div'); overlay.className = 'modal-overlay show'; overlay.style.zIndex = '2500';
-            var now = new Date(); var ts = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0') + String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0');
+            var overlay = document.createElement('div');
+            overlay.className = 'modal-overlay show';
+            overlay.style.zIndex = '2500';
+            var now = new Date();
+            var ts = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0') + String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0');
             overlay.innerHTML = '<div class="modal-content"><h3>发布通知</h3><label>时间戳（自动生成）</label><input value="' + ts + '" readonly style="background:#f0f2f5;color:#6b7280;"><label>通知内容</label><textarea id="newNotifyContent" placeholder="请输入通知内容"></textarea><label>链接</label><input id="newNotifyLink" placeholder="https://..." value=""><div class="modal-buttons"><button class="btn-cancel" id="notifyCancel">取消</button><button class="btn-confirm" id="notifyConfirm">发布</button></div></div>';
             document.body.appendChild(overlay);
             overlay.querySelector('#notifyCancel').addEventListener('click', function() { overlay.remove(); });
@@ -594,13 +712,18 @@
                 var raw = ts + ' ' + content + ' ' + link;
                 notifyList.push({ id: ts, content: content, link: link, raw: raw });
                 notifyList.sort(function(a, b) { return b.id.localeCompare(a.id); });
-                try { await saveNotifyToGitHub(); renderNotifyListUI(); overlay.remove(); showToast('通知发布成功'); } catch (e) { showToast('保存失败: ' + e.message); }
+                try { await saveNotifyToGitHub();
+                    renderNotifyListUI();
+                    overlay.remove();
+                    showToast('通知发布成功'); } catch (e) { showToast('保存失败: ' + e.message); }
             });
         }
 
         function buildGroupSelect(id, currentGroup, includeNewOption) {
             var html = '<select id="' + id + '" style="width:100%;padding:10px;border:1px solid #d0d5dd;border-radius:8px;font-size:0.9rem;">';
-            for (var g = 0; g < groupOrder.length; g++) { html += '<option value="' + escapeHtml(groupOrder[g]) + '"' + (groupOrder[g] === currentGroup ? ' selected' : '') + '>' + escapeHtml(groupOrder[g]) + '</option>'; }
+            for (var g = 0; g < groupOrder.length; g++) {
+                html += '<option value="' + escapeHtml(groupOrder[g]) + '"' + (groupOrder[g] === currentGroup ? ' selected' : '') + '>' + escapeHtml(groupOrder[g]) + '</option>';
+            }
             if (includeNewOption) html += '<option value="__new_group__" style="color:#2b4c8a;font-weight:600;">+ 新建分组</option>';
             html += '</select>';
             return html;
@@ -610,14 +733,18 @@
             selectEl.addEventListener('change', function() {
                 if (this.value === '__new_group__') {
                     this.value = groupOrder[0] || '其他应用';
-                    var promptOverlay = document.createElement('div'); promptOverlay.className = 'modal-overlay show'; promptOverlay.style.zIndex = '3000';
+                    var promptOverlay = document.createElement('div');
+                    promptOverlay.className = 'modal-overlay show';
+                    promptOverlay.style.zIndex = '3000';
                     promptOverlay.innerHTML = '<div class="modal-content"><h3>新建分组</h3><label>请输入分组名称</label><input id="newGroupNameInput" placeholder="分组名称"><div class="modal-buttons"><button class="btn-cancel" id="newGroupCancel">取消</button><button class="btn-confirm" id="newGroupConfirm">确定</button></div></div>';
                     document.body.appendChild(promptOverlay);
-                    var inputEl = promptOverlay.querySelector('#newGroupNameInput'); inputEl.focus();
+                    var inputEl = promptOverlay.querySelector('#newGroupNameInput');
+                    inputEl.focus();
                     promptOverlay.querySelector('#newGroupCancel').addEventListener('click', function() { promptOverlay.remove(); });
                     promptOverlay.addEventListener('click', function(e) { if (e.target === promptOverlay) promptOverlay.remove(); });
                     promptOverlay.querySelector('#newGroupConfirm').addEventListener('click', function() {
-                        var val = inputEl.value.trim(); promptOverlay.remove();
+                        var val = inputEl.value.trim();
+                        promptOverlay.remove();
                         if (!val) return;
                         if (groupOrder.indexOf(val) !== -1) { showToast('分组名称已存在'); return; }
                         groupOrder.push(val);
@@ -633,7 +760,9 @@
         }
 
         function openAddAppModal() {
-            var overlay = document.createElement('div'); overlay.className = 'modal-overlay show'; overlay.style.zIndex = '2500';
+            var overlay = document.createElement('div');
+            overlay.className = 'modal-overlay show';
+            overlay.style.zIndex = '2500';
             overlay.innerHTML = '<div class="modal-content"><h3>添加应用</h3>' +
                 '<label>应用名称</label><input id="newAppName" placeholder="应用名称">' +
                 '<label>创建方式</label><div class="mode-switch" id="appModeSwitch"><button class="active" data-mode="file">使用文件创建应用</button><button data-mode="url">使用网址创建应用</button></div>' +
@@ -658,93 +787,225 @@
                 document.querySelectorAll('#appModeSwitch button').forEach(function(b) { b.classList.toggle('active', b.dataset.mode === mode); });
             }
 
-            function autoFillIcon(path) { var iconInput = document.getElementById('newAppIcon'); if (!iconInput.value || iconInput.value === 'null.jpg' || iconInput.value === '') { iconInput.value = getAutoIcon(path); } }
+            function autoFillIcon(path) {
+                var iconInput = document.getElementById('newAppIcon');
+                if (!iconInput.value || iconInput.value === 'null.jpg' || iconInput.value === '') {
+                    iconInput.value = getAutoIcon(path);
+                }
+            }
 
             function addDeleteButton() {
-                var area = document.getElementById('appUploadArea'); var existingBtn = area.querySelector('.file-delete-btn'); if (existingBtn) existingBtn.remove();
+                var area = document.getElementById('appUploadArea');
+                var existingBtn = area.querySelector('.file-delete-btn');
+                if (existingBtn) existingBtn.remove();
                 if (uploadedFilePath) {
-                    var delBtn = document.createElement('button'); delBtn.className = 'file-delete-btn'; delBtn.textContent = '删除';
+                    var delBtn = document.createElement('button');
+                    delBtn.className = 'file-delete-btn';
+                    delBtn.textContent = '删除';
                     delBtn.addEventListener('click', async function() {
                         if (isUploading) return;
-                        var statusEl = document.getElementById('appFileStatus'); var nameEl = document.getElementById('appFileName'); var uploadBtn = document.getElementById('appUploadBtn'); var confirmBtn = document.getElementById('appConfirm');
-                        isUploading = true; uploadBtn.disabled = true; confirmBtn.disabled = true;
-                        statusEl.textContent = '正在删除...'; statusEl.className = 'file-status loading';
-                        try { await deleteFileByPath(uploadedFilePath); uploadedFilesToClean = uploadedFilesToClean.filter(function(f) { return f !== uploadedFilePath; }); uploadedFilePath = null; nameEl.textContent = ''; statusEl.textContent = '已删除'; statusEl.className = 'file-status success'; delBtn.remove(); setTimeout(function() { statusEl.textContent = ''; statusEl.className = 'file-status'; }, 2000); } catch (e) { statusEl.textContent = '删除失败'; statusEl.className = 'file-status error'; }
-                        isUploading = false; uploadBtn.disabled = false; confirmBtn.disabled = false;
+                        var statusEl = document.getElementById('appFileStatus');
+                        var nameEl = document.getElementById('appFileName');
+                        var uploadBtn = document.getElementById('appUploadBtn');
+                        var confirmBtn = document.getElementById('appConfirm');
+                        isUploading = true;
+                        uploadBtn.disabled = true;
+                        confirmBtn.disabled = true;
+                        statusEl.textContent = '正在删除...';
+                        statusEl.className = 'file-status loading';
+                        try {
+                            await deleteFileByPath(uploadedFilePath);
+                            uploadedFilesToClean = uploadedFilesToClean.filter(function(f) { return f !== uploadedFilePath; });
+                            uploadedFilePath = null;
+                            nameEl.textContent = '';
+                            statusEl.textContent = '已删除';
+                            statusEl.className = 'file-status success';
+                            delBtn.remove();
+                            setTimeout(function() { statusEl.textContent = '';
+                                statusEl.className = 'file-status'; }, 2000);
+                        } catch (e) {
+                            statusEl.textContent = '删除失败';
+                            statusEl.className = 'file-status error';
+                        }
+                        isUploading = false;
+                        uploadBtn.disabled = false;
+                        confirmBtn.disabled = false;
                     });
                     area.appendChild(delBtn);
                 }
             }
 
-            overlay.querySelector('#appModeSwitch').addEventListener('click', function(e) { if (e.target.tagName === 'BUTTON' && e.target.dataset.mode && e.target.dataset.mode !== mode) { mode = e.target.dataset.mode; updateModeUI(); } });
+            overlay.querySelector('#appModeSwitch').addEventListener('click', function(e) {
+                if (e.target.tagName === 'BUTTON' && e.target.dataset.mode && e.target.dataset.mode !== mode) {
+                    mode = e.target.dataset.mode;
+                    updateModeUI();
+                }
+            });
 
             overlay.querySelector('#appUploadBtn').addEventListener('click', function() {
                 if (isUploading) return;
-                var inp = document.createElement('input'); inp.type = 'file';
+                var inp = document.createElement('input');
+                inp.type = 'file';
                 inp.onchange = async function(ev) {
                     if (!ev.target.files[0]) return;
-                    var file = ev.target.files[0]; var statusEl = document.getElementById('appFileStatus'); var nameEl = document.getElementById('appFileName'); var uploadBtn = document.getElementById('appUploadBtn'); var confirmBtn = document.getElementById('appConfirm');
-                    isUploading = true; uploadBtn.disabled = true; confirmBtn.disabled = true;
-                    statusEl.textContent = '上传中...'; statusEl.className = 'file-status loading'; nameEl.textContent = file.name;
+                    var file = ev.target.files[0];
+                    var statusEl = document.getElementById('appFileStatus');
+                    var nameEl = document.getElementById('appFileName');
+                    var uploadBtn = document.getElementById('appUploadBtn');
+                    var confirmBtn = document.getElementById('appConfirm');
+                    isUploading = true;
+                    uploadBtn.disabled = true;
+                    confirmBtn.disabled = true;
+                    statusEl.textContent = '上传中...';
+                    statusEl.className = 'file-status loading';
+                    nameEl.textContent = file.name;
                     try {
-                        var fullPath = UPLOAD_FOLDER + file.name; var exists = await checkFileExists(fullPath);
-                        if (exists) { isUploading = false; uploadBtn.disabled = false; confirmBtn.disabled = false; statusEl.textContent = ''; statusEl.className = 'file-status'; showDuplicateFileDialog(file, overlay, function(resultPath) { uploadedFilePath = resultPath; uploadedFilesToClean.push(resultPath); nameEl.textContent = resultPath; statusEl.textContent = '已选择'; statusEl.className = 'file-status success'; confirmBtn.disabled = false; autoFillIcon(resultPath); addDeleteButton(); }); return; }
-                        var fn = await uploadFileDirect(file); uploadedFilePath = fn; uploadedFilesToClean.push(fn); statusEl.textContent = '上传完成'; statusEl.className = 'file-status success'; confirmBtn.disabled = false; autoFillIcon(fn); addDeleteButton();
-                    } catch (err) { statusEl.textContent = '上传失败'; statusEl.className = 'file-status error'; }
-                    isUploading = false; uploadBtn.disabled = false;
+                        var fullPath = UPLOAD_FOLDER + file.name;
+                        var exists = await checkFileExists(fullPath);
+                        if (exists) {
+                            isUploading = false;
+                            uploadBtn.disabled = false;
+                            confirmBtn.disabled = false;
+                            statusEl.textContent = '';
+                            statusEl.className = 'file-status';
+                            showDuplicateFileDialog(file, overlay, function(resultPath) {
+                                uploadedFilePath = resultPath;
+                                uploadedFilesToClean.push(resultPath);
+                                nameEl.textContent = resultPath;
+                                statusEl.textContent = '已选择';
+                                statusEl.className = 'file-status success';
+                                confirmBtn.disabled = false;
+                                autoFillIcon(resultPath);
+                                addDeleteButton();
+                            });
+                            return;
+                        }
+                        var fn = await uploadFileDirect(file);
+                        uploadedFilePath = fn;
+                        uploadedFilesToClean.push(fn);
+                        statusEl.textContent = '上传完成';
+                        statusEl.className = 'file-status success';
+                        confirmBtn.disabled = false;
+                        autoFillIcon(fn);
+                        addDeleteButton();
+                    } catch (err) {
+                        statusEl.textContent = '上传失败';
+                        statusEl.className = 'file-status error';
+                    }
+                    isUploading = false;
+                    uploadBtn.disabled = false;
                 };
                 inp.click();
             });
 
             var urlInput = document.getElementById('newAppLink');
-            urlInput.addEventListener('blur', function() { var val = urlInput.value.trim(); if (val) { autoFillIcon(smartResolveLink(val)); } });
+            urlInput.addEventListener('blur', function() {
+                var val = urlInput.value.trim();
+                if (val) {
+                    var resolved = smartResolveLink(val);
+                    autoFillIcon(resolved);
+                }
+            });
 
-            function cleanupUploadedFiles() { uploadedFilesToClean.forEach(function(fp) { deleteFileByPath(fp); }); }
+            function cleanupUploadedFiles() {
+                uploadedFilesToClean.forEach(function(fp) {
+                    deleteFileByPath(fp);
+                });
+            }
 
-            overlay.querySelector('#appCancel').addEventListener('click', function() { cleanupUploadedFiles(); overlay.remove(); });
-            overlay.addEventListener('click', function(e) { if (e.target === overlay) { cleanupUploadedFiles(); overlay.remove(); } });
+            overlay.querySelector('#appCancel').addEventListener('click', function() {
+                cleanupUploadedFiles();
+                overlay.remove();
+            });
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) {
+                    cleanupUploadedFiles();
+                    overlay.remove();
+                }
+            });
 
             document.getElementById('appConfirm').addEventListener('click', function() {
                 if (isUploading) return;
-                var n = document.getElementById('newAppName').value.trim(); var icon = document.getElementById('newAppIcon').value.trim(); var g = document.getElementById('newAppGroup').value; if (g === '__new_group__') g = '其他应用';
+                var n = document.getElementById('newAppName').value.trim();
+                var icon = document.getElementById('newAppIcon').value.trim();
+                var g = document.getElementById('newAppGroup').value;
+                if (g === '__new_group__') g = '其他应用';
                 var link;
-                if (mode === 'file') { if (!uploadedFilePath) { showToast('请先上传文件'); return; } link = uploadedFilePath; } else { link = smartResolveLink(urlInput.value.trim()); }
+                if (mode === 'file') {
+                    if (!uploadedFilePath) { showToast('请先上传文件'); return; }
+                    link = uploadedFilePath;
+                } else {
+                    var rawLink = urlInput.value.trim();
+                    link = smartResolveLink(rawLink);
+                }
                 if (!n) { showToast('请填写应用名称'); return; }
                 if (!link) { showToast('请提供文件或链接'); return; }
                 if (!icon) icon = getAutoIcon(link);
                 appItems.push({ name: n, icon: icon || 'null.jpg', link: link, group: g !== '其他应用' ? g : null });
-                uploadedFilesToClean = []; renderApps(); overlay.remove();
+                uploadedFilesToClean = [];
+                renderApps();
+                overlay.remove();
             });
         }
 
         function showDuplicateFileDialog(file, parentOverlay, callback) {
-            var dialog = document.createElement('div'); dialog.className = 'modal-overlay show'; dialog.style.zIndex = '3000';
+            var dialog = document.createElement('div');
+            dialog.className = 'modal-overlay show';
+            dialog.style.zIndex = '3000';
             dialog.innerHTML = '<div class="modal-content"><h3>该文件已存在</h3><p style="color:#6b7280;margin-bottom:16px;">请选择你的操作</p>' +
-                '<div class="modal-buttons" style="flex-direction:column;gap:8px;"><button class="btn-confirm" id="dupCopy">创建副本</button><button class="btn-cancel" id="dupUse">使用该文件</button><button class="btn-cancel" id="dupCancel">取消</button></div></div>';
+                '<div class="modal-buttons" style="flex-direction:column;gap:8px;">' +
+                '<button class="btn-confirm" id="dupCopy">创建副本</button>' +
+                '<button class="btn-cancel" id="dupUse">使用该文件</button>' +
+                '<button class="btn-cancel" id="dupCancel">取消</button></div></div>';
             document.body.appendChild(dialog);
 
             dialog.querySelector('#dupCopy').addEventListener('click', async function() {
                 dialog.remove();
-                var statusEl = document.getElementById('appFileStatus') || document.getElementById('carouselFileStatus'); var nameEl = document.getElementById('appFileName') || document.getElementById('carouselFileName');
-                if (statusEl) { statusEl.textContent = '创建副本中...'; statusEl.className = 'file-status loading'; }
+                var statusEl = document.getElementById('appFileStatus') || document.getElementById('carouselFileStatus');
+                var nameEl = document.getElementById('appFileName') || document.getElementById('carouselFileName');
+                if (statusEl) { statusEl.textContent = '创建副本中...';
+                    statusEl.className = 'file-status loading'; }
                 try {
-                    var origName = file.name; var baseName = UPLOAD_FOLDER + origName; var copyName = getCopyFileName(baseName); var exists = await checkFileExists(copyName);
-                    while (exists) { copyName = getCopyFileName(copyName); exists = await checkFileExists(copyName); }
-                    var reader = new FileReader(); var base64 = await new Promise(function(resolve) { reader.onload = function(e) { resolve(e.target.result.split(',')[1]); }; reader.readAsDataURL(file); });
-                    await githubFetch('/contents/' + encodeURIComponent(copyName), { method: 'PUT', body: JSON.stringify({ message: '上传副本 ' + copyName, content: base64, branch: 'main' }) });
+                    var origName = file.name;
+                    var baseName = UPLOAD_FOLDER + origName;
+                    var copyName = getCopyFileName(baseName);
+                    var exists = await checkFileExists(copyName);
+                    while (exists) { copyName = getCopyFileName(copyName);
+                        exists = await checkFileExists(copyName); }
+                    var reader = new FileReader();
+                    var base64 = await new Promise(function(resolve) { reader.onload = function(e) { resolve(e.target.result.split(',')[1]); };
+                        reader.readAsDataURL(file); });
+                    await githubFetch('/contents/' + encodeURIComponent(copyName), {
+                        method: 'PUT',
+                        body: JSON.stringify({ message: '上传副本 ' + copyName, content: base64, branch: 'main' })
+                    });
                     if (nameEl) nameEl.textContent = copyName;
-                    if (statusEl) { statusEl.textContent = '上传完成'; statusEl.className = 'file-status success'; }
+                    if (statusEl) { statusEl.textContent = '上传完成';
+                        statusEl.className = 'file-status success'; }
                     callback(copyName);
-                } catch (e) { if (statusEl) { statusEl.textContent = '上传失败'; statusEl.className = 'file-status error'; } }
+                } catch (e) { if (statusEl) { statusEl.textContent = '上传失败';
+                        statusEl.className = 'file-status error'; } }
             });
 
-            dialog.querySelector('#dupUse').addEventListener('click', function() { dialog.remove(); var fn = UPLOAD_FOLDER + file.name; var nameEl = document.getElementById('appFileName') || document.getElementById('carouselFileName'); var statusEl = document.getElementById('appFileStatus') || document.getElementById('carouselFileStatus'); if (nameEl) nameEl.textContent = fn; if (statusEl) { statusEl.textContent = '已选择'; statusEl.className = 'file-status success'; } callback(fn); });
+            dialog.querySelector('#dupUse').addEventListener('click', function() {
+                dialog.remove();
+                var fn = UPLOAD_FOLDER + file.name;
+                var nameEl = document.getElementById('appFileName') || document.getElementById('carouselFileName');
+                var statusEl = document.getElementById('appFileStatus') || document.getElementById('carouselFileStatus');
+                if (nameEl) nameEl.textContent = fn;
+                if (statusEl) { statusEl.textContent = '已选择';
+                    statusEl.className = 'file-status success'; }
+                callback(fn);
+            });
+
             dialog.querySelector('#dupCancel').addEventListener('click', function() { dialog.remove(); });
             dialog.addEventListener('click', function(e) { if (e.target === dialog) dialog.remove(); });
         }
 
         function openAddCarouselModal() {
-            var overlay = document.createElement('div'); overlay.className = 'modal-overlay show'; overlay.style.zIndex = '2500';
+            var overlay = document.createElement('div');
+            overlay.className = 'modal-overlay show';
+            overlay.style.zIndex = '2500';
             overlay.innerHTML = '<div class="modal-content"><h3>添加轮播图</h3>' +
                 '<label>图片来源</label><div class="mode-switch" id="carouselModeSwitch"><button class="active" data-mode="file">上传图片</button><button data-mode="url">使用网络图片</button></div>' +
                 '<div id="carouselFileSection"><div class="upload-file-area" id="carouselUploadArea"><button id="carouselUploadBtn">+ 上传图片</button><span class="file-name" id="carouselFileName"></span><span class="file-status" id="carouselFileStatus"></span></div></div>' +
@@ -753,136 +1014,393 @@
                 '<div class="modal-buttons"><button class="btn-cancel" id="carouselCancel">取消</button><button class="btn-confirm" id="carouselConfirm">添加</button></div></div>';
             document.body.appendChild(overlay);
 
-            var mode = 'file'; var uploadedImgPath = null; var isUploading = false; var uploadedFilesToClean = [];
+            var mode = 'file';
+            var uploadedImgPath = null;
+            var isUploading = false;
+            var uploadedFilesToClean = [];
 
-            function updateModeUI() { document.getElementById('carouselFileSection').style.display = (mode === 'file') ? '' : 'none'; document.getElementById('carouselUrlSection').style.display = (mode === 'url') ? '' : 'none'; document.querySelectorAll('#carouselModeSwitch button').forEach(function(b) { b.classList.toggle('active', b.dataset.mode === mode); }); }
+            function updateModeUI() {
+                document.getElementById('carouselFileSection').style.display = (mode === 'file') ? '' : 'none';
+                document.getElementById('carouselUrlSection').style.display = (mode === 'url') ? '' : 'none';
+                document.querySelectorAll('#carouselModeSwitch button').forEach(function(b) { b.classList.toggle('active', b.dataset.mode === mode); });
+            }
 
             function addDeleteButton() {
-                var area = document.getElementById('carouselUploadArea'); var existingBtn = area.querySelector('.file-delete-btn'); if (existingBtn) existingBtn.remove();
+                var area = document.getElementById('carouselUploadArea');
+                var existingBtn = area.querySelector('.file-delete-btn');
+                if (existingBtn) existingBtn.remove();
                 if (uploadedImgPath) {
-                    var delBtn = document.createElement('button'); delBtn.className = 'file-delete-btn'; delBtn.textContent = '删除';
+                    var delBtn = document.createElement('button');
+                    delBtn.className = 'file-delete-btn';
+                    delBtn.textContent = '删除';
                     delBtn.addEventListener('click', async function() {
                         if (isUploading) return;
-                        var statusEl = document.getElementById('carouselFileStatus'); var nameEl = document.getElementById('carouselFileName'); var uploadBtn = document.getElementById('carouselUploadBtn'); var confirmBtn = document.getElementById('carouselConfirm');
-                        isUploading = true; uploadBtn.disabled = true; confirmBtn.disabled = true; statusEl.textContent = '正在删除...'; statusEl.className = 'file-status loading';
-                        try { await deleteFileByPath(uploadedImgPath); uploadedFilesToClean = uploadedFilesToClean.filter(function(f) { return f !== uploadedImgPath; }); uploadedImgPath = null; nameEl.textContent = ''; statusEl.textContent = '已删除'; statusEl.className = 'file-status success'; delBtn.remove(); setTimeout(function() { statusEl.textContent = ''; statusEl.className = 'file-status'; }, 2000); } catch (e) { statusEl.textContent = '删除失败'; statusEl.className = 'file-status error'; }
-                        isUploading = false; uploadBtn.disabled = false; confirmBtn.disabled = false;
+                        var statusEl = document.getElementById('carouselFileStatus');
+                        var nameEl = document.getElementById('carouselFileName');
+                        var uploadBtn = document.getElementById('carouselUploadBtn');
+                        var confirmBtn = document.getElementById('carouselConfirm');
+                        isUploading = true;
+                        uploadBtn.disabled = true;
+                        confirmBtn.disabled = true;
+                        statusEl.textContent = '正在删除...';
+                        statusEl.className = 'file-status loading';
+                        try {
+                            await deleteFileByPath(uploadedImgPath);
+                            uploadedFilesToClean = uploadedFilesToClean.filter(function(f) { return f !== uploadedImgPath; });
+                            uploadedImgPath = null;
+                            nameEl.textContent = '';
+                            statusEl.textContent = '已删除';
+                            statusEl.className = 'file-status success';
+                            delBtn.remove();
+                            setTimeout(function() { statusEl.textContent = '';
+                                statusEl.className = 'file-status'; }, 2000);
+                        } catch (e) {
+                            statusEl.textContent = '删除失败';
+                            statusEl.className = 'file-status error';
+                        }
+                        isUploading = false;
+                        uploadBtn.disabled = false;
+                        confirmBtn.disabled = false;
                     });
                     area.appendChild(delBtn);
                 }
             }
 
-            overlay.querySelector('#carouselModeSwitch').addEventListener('click', function(e) { if (e.target.tagName === 'BUTTON' && e.target.dataset.mode && e.target.dataset.mode !== mode) { mode = e.target.dataset.mode; updateModeUI(); } });
+            overlay.querySelector('#carouselModeSwitch').addEventListener('click', function(e) {
+                if (e.target.tagName === 'BUTTON' && e.target.dataset.mode && e.target.dataset.mode !== mode) {
+                    mode = e.target.dataset.mode;
+                    updateModeUI();
+                }
+            });
 
             overlay.querySelector('#carouselUploadBtn').addEventListener('click', function() {
                 if (isUploading) return;
-                var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
+                var inp = document.createElement('input');
+                inp.type = 'file';
+                inp.accept = 'image/*';
                 inp.onchange = async function(ev) {
                     if (!ev.target.files[0]) return;
-                    var file = ev.target.files[0]; var statusEl = document.getElementById('carouselFileStatus'); var nameEl = document.getElementById('carouselFileName'); var uploadBtn = document.getElementById('carouselUploadBtn'); var confirmBtn = document.getElementById('carouselConfirm');
-                    isUploading = true; uploadBtn.disabled = true; confirmBtn.disabled = true; statusEl.textContent = '上传中...'; statusEl.className = 'file-status loading'; nameEl.textContent = file.name;
+                    var file = ev.target.files[0];
+                    var statusEl = document.getElementById('carouselFileStatus');
+                    var nameEl = document.getElementById('carouselFileName');
+                    var uploadBtn = document.getElementById('carouselUploadBtn');
+                    var confirmBtn = document.getElementById('carouselConfirm');
+                    isUploading = true;
+                    uploadBtn.disabled = true;
+                    confirmBtn.disabled = true;
+                    statusEl.textContent = '上传中...';
+                    statusEl.className = 'file-status loading';
+                    nameEl.textContent = file.name;
                     try {
-                        var fullPath = UPLOAD_FOLDER + file.name; var exists = await checkFileExists(fullPath);
-                        if (exists) { isUploading = false; uploadBtn.disabled = false; confirmBtn.disabled = false; statusEl.textContent = ''; statusEl.className = 'file-status'; showDuplicateFileDialog(file, overlay, function(resultPath) { uploadedImgPath = resultPath; uploadedFilesToClean.push(resultPath); nameEl.textContent = resultPath; statusEl.textContent = '已选择'; statusEl.className = 'file-status success'; confirmBtn.disabled = false; addDeleteButton(); }); return; }
-                        var fn = await uploadFileDirect(file); uploadedImgPath = fn; uploadedFilesToClean.push(fn); statusEl.textContent = '上传完成'; statusEl.className = 'file-status success'; confirmBtn.disabled = false; addDeleteButton();
-                    } catch (err) { statusEl.textContent = '上传失败'; statusEl.className = 'file-status error'; }
-                    isUploading = false; uploadBtn.disabled = false;
+                        var fullPath = UPLOAD_FOLDER + file.name;
+                        var exists = await checkFileExists(fullPath);
+                        if (exists) {
+                            isUploading = false;
+                            uploadBtn.disabled = false;
+                            confirmBtn.disabled = false;
+                            statusEl.textContent = '';
+                            statusEl.className = 'file-status';
+                            showDuplicateFileDialog(file, overlay, function(resultPath) {
+                                uploadedImgPath = resultPath;
+                                uploadedFilesToClean.push(resultPath);
+                                nameEl.textContent = resultPath;
+                                statusEl.textContent = '已选择';
+                                statusEl.className = 'file-status success';
+                                confirmBtn.disabled = false;
+                                addDeleteButton();
+                            });
+                            return;
+                        }
+                        var fn = await uploadFileDirect(file);
+                        uploadedImgPath = fn;
+                        uploadedFilesToClean.push(fn);
+                        statusEl.textContent = '上传完成';
+                        statusEl.className = 'file-status success';
+                        confirmBtn.disabled = false;
+                        addDeleteButton();
+                    } catch (err) {
+                        statusEl.textContent = '上传失败';
+                        statusEl.className = 'file-status error';
+                    }
+                    isUploading = false;
+                    uploadBtn.disabled = false;
                 };
                 inp.click();
             });
 
-            function cleanupUploadedFiles() { uploadedFilesToClean.forEach(function(fp) { deleteFileByPath(fp); }); }
+            function cleanupUploadedFiles() {
+                uploadedFilesToClean.forEach(function(fp) {
+                    deleteFileByPath(fp);
+                });
+            }
 
-            overlay.querySelector('#carouselCancel').addEventListener('click', function() { cleanupUploadedFiles(); overlay.remove(); });
-            overlay.addEventListener('click', function(e) { if (e.target === overlay) { cleanupUploadedFiles(); overlay.remove(); } });
+            overlay.querySelector('#carouselCancel').addEventListener('click', function() {
+                cleanupUploadedFiles();
+                overlay.remove();
+            });
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) {
+                    cleanupUploadedFiles();
+                    overlay.remove();
+                }
+            });
 
             document.getElementById('carouselConfirm').addEventListener('click', function() {
                 if (isUploading) return;
                 var img, link = document.getElementById('newCarouselLink').value.trim();
-                if (mode === 'file') { if (!uploadedImgPath) { showToast('请先上传图片'); return; } img = uploadedImgPath; } else { img = smartResolveLink(document.getElementById('newCarouselImg').value.trim()); }
+                if (mode === 'file') {
+                    if (!uploadedImgPath) { showToast('请先上传图片'); return; }
+                    img = uploadedImgPath;
+                } else {
+                    var rawImg = document.getElementById('newCarouselImg').value.trim();
+                    img = smartResolveLink(rawImg);
+                }
                 if (!img) { showToast('请提供图片'); return; }
-                slidesData.push({ imgUrl: img, linkUrl: link }); uploadedFilesToClean = []; renderCarousels(); overlay.remove();
+                slidesData.push({ imgUrl: img, linkUrl: link });
+                uploadedFilesToClean = [];
+                renderCarousels();
+                overlay.remove();
             });
         }
 
         // ============================================================
-        // 登录逻辑
+        // ✅ 登录逻辑：记住密码后只填充，不自动登录
         // ============================================================
         function checkRememberedLogin() {
-            var savedUser = localStorage.getItem('editor_username');
-            var savedPass = localStorage.getItem('editor_password');
-            var savedToken = localStorage.getItem('editor_temp_token');
-            var savedMode = localStorage.getItem('editor_login_mode') || 'account';
-            if (savedMode === 'account' && savedUser && savedPass) { document.getElementById('usernameInput').value = savedUser; document.getElementById('passwordInput').value = savedPass; document.getElementById('rememberLogin').checked = true; switchLoginMode('account'); setTimeout(doLogin, 100); }
-            else if (savedMode === 'token' && savedToken) { document.getElementById('tokenInput').value = savedToken; document.getElementById('rememberLogin').checked = true; switchLoginMode('token'); setTimeout(doLogin, 100); }
+            var savedMode = localStorage.getItem('editor_login_mode');
+            if (savedMode === 'account') {
+                var savedUser = localStorage.getItem('editor_username');
+                var savedPass = localStorage.getItem('editor_password');
+                if (savedUser && savedPass) {
+                    document.getElementById('usernameInput').value = savedUser;
+                    document.getElementById('passwordInput').value = savedPass;
+                    document.getElementById('rememberLogin').checked = true;
+                    switchLoginMode('account');
+                }
+            } else if (savedMode === 'token') {
+                var savedToken = localStorage.getItem('editor_temp_token');
+                if (savedToken) {
+                    document.getElementById('tokenInput').value = savedToken;
+                    document.getElementById('rememberLogin').checked = true;
+                    switchLoginMode('token');
+                }
+            }
         }
 
         function switchLoginMode(mode) {
             loginMode = mode;
-            document.querySelectorAll('#loginModeSwitch button').forEach(function(btn) { btn.classList.toggle('active', btn.dataset.mode === mode); });
+            document.querySelectorAll('#loginModeSwitch button').forEach(function(btn) {
+                btn.classList.toggle('active', btn.dataset.mode === mode);
+            });
             document.getElementById('accountLogin').classList.toggle('active', mode === 'account');
             document.getElementById('tokenLogin').classList.toggle('active', mode === 'token');
             document.getElementById('loginError').style.display = 'none';
         }
 
-        document.querySelectorAll('#loginModeSwitch button').forEach(function(btn) { btn.addEventListener('click', function() { switchLoginMode(this.dataset.mode); }); });
+        document.querySelectorAll('#loginModeSwitch button').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                switchLoginMode(this.dataset.mode);
+                document.getElementById('loginError').style.display = 'none';
+            });
+        });
 
         async function doLogin() {
-            var errorEl = document.getElementById('loginError'); var btn = document.getElementById('loginBtn'); var remember = document.getElementById('rememberLogin').checked;
-            btn.disabled = true; btn.textContent = '登录中...'; errorEl.style.display = 'none';
+            var errorEl = document.getElementById('loginError');
+            var btn = document.getElementById('loginBtn');
+            var remember = document.getElementById('rememberLogin').checked;
+
+            btn.disabled = true;
+            btn.textContent = '登录中...';
+            errorEl.style.display = 'none';
+
             try {
                 if (loginMode === 'account') {
-                    var username = document.getElementById('usernameInput').value.trim(); var password = document.getElementById('passwordInput').value.trim();
-                    if (!username || !password) { errorEl.textContent = '请输入用户名和密码'; errorEl.style.display = 'block'; btn.disabled = false; btn.textContent = '登录'; return; }
-                    var response = await fetch(WORKER_BASE + '/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: username, password: password }) });
+                    var username = document.getElementById('usernameInput').value.trim();
+                    var password = document.getElementById('passwordInput').value.trim();
+                    if (!username || !password) {
+                        errorEl.textContent = '请输入用户名和密码';
+                        errorEl.style.display = 'block';
+                        btn.disabled = false;
+                        btn.textContent = '登录';
+                        return;
+                    }
+                    var response = await fetch(WORKER_BASE + '/api/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username: username, password: password })
+                    });
                     var data = await response.json();
-                    if (data.success) { sessionToken = data.token; currentUser = data.username; isTokenMode = false; if (remember) { localStorage.setItem('editor_login_mode', 'account'); localStorage.setItem('editor_username', username); localStorage.setItem('editor_password', password); localStorage.removeItem('editor_temp_token'); } else { localStorage.removeItem('editor_login_mode'); localStorage.removeItem('editor_username'); localStorage.removeItem('editor_password'); localStorage.removeItem('editor_temp_token'); } }
-                    else { errorEl.textContent = data.message || '登录失败'; errorEl.style.display = 'block'; btn.disabled = false; btn.textContent = '登录'; return; }
+                    if (data.success) {
+                        sessionToken = data.token;
+                        currentUser = data.username;
+                        isTokenMode = false;
+                        if (remember) {
+                            localStorage.setItem('editor_login_mode', 'account');
+                            localStorage.setItem('editor_username', username);
+                            localStorage.setItem('editor_password', password);
+                            localStorage.removeItem('editor_temp_token');
+                        } else {
+                            localStorage.removeItem('editor_login_mode');
+                            localStorage.removeItem('editor_username');
+                            localStorage.removeItem('editor_password');
+                            localStorage.removeItem('editor_temp_token');
+                        }
+                    } else {
+                        errorEl.textContent = data.message || '登录失败，请重试';
+                        errorEl.style.display = 'block';
+                        btn.disabled = false;
+                        btn.textContent = '登录';
+                        return;
+                    }
                 } else {
                     var tempToken = document.getElementById('tokenInput').value.trim();
-                    if (!tempToken) { errorEl.textContent = '请输入临时密钥'; errorEl.style.display = 'block'; btn.disabled = false; btn.textContent = '登录'; return; }
-                    var ghResponse = await fetch('https://api.github.com/user', { headers: { 'Authorization': 'Bearer ' + tempToken } });
-                    if (!ghResponse.ok) { errorEl.textContent = '密钥无效'; errorEl.style.display = 'block'; btn.disabled = false; btn.textContent = '登录'; return; }
-                    sessionToken = tempToken; currentUser = '临时用户'; isTokenMode = true;
-                    if (remember) { localStorage.setItem('editor_login_mode', 'token'); localStorage.setItem('editor_temp_token', tempToken); localStorage.removeItem('editor_username'); localStorage.removeItem('editor_password'); } else { localStorage.removeItem('editor_login_mode'); localStorage.removeItem('editor_username'); localStorage.removeItem('editor_password'); localStorage.removeItem('editor_temp_token'); }
+                    if (!tempToken) {
+                        errorEl.textContent = '请输入临时密钥';
+                        errorEl.style.display = 'block';
+                        btn.disabled = false;
+                        btn.textContent = '登录';
+                        return;
+                    }
+                    var ghResponse = await fetch('https://api.github.com/user', {
+                        headers: { 'Authorization': 'Bearer ' + tempToken }
+                    });
+                    if (!ghResponse.ok) {
+                        errorEl.textContent = '密钥无效，请检查后重试';
+                        errorEl.style.display = 'block';
+                        btn.disabled = false;
+                        btn.textContent = '登录';
+                        return;
+                    }
+                    sessionToken = tempToken;
+                    currentUser = '临时用户';
+                    isTokenMode = true;
+                    if (remember) {
+                        localStorage.setItem('editor_login_mode', 'token');
+                        localStorage.setItem('editor_temp_token', tempToken);
+                        localStorage.removeItem('editor_username');
+                        localStorage.removeItem('editor_password');
+                    } else {
+                        localStorage.removeItem('editor_login_mode');
+                        localStorage.removeItem('editor_temp_token');
+                        localStorage.removeItem('editor_username');
+                        localStorage.removeItem('editor_password');
+                    }
                 }
+
                 await Promise.all([loadRemoteConfig(), loadRemoteNotify()]);
-                document.getElementById('loginOverlay').style.display = 'none'; document.getElementById('mainContent').style.display = 'block';
-                renderGroups(); renderCarousels(); renderApps(); renderNotifyListUI();
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                renderGroups();
+                renderCarousels();
+                renderApps();
+                renderNotifyListUI();
                 showToast('登录成功，欢迎 ' + (loginMode === 'account' ? currentUser : '临时用户'));
-            } catch (e) { errorEl.textContent = '网络错误'; errorEl.style.display = 'block'; console.error('登录错误:', e); }
-            finally { btn.disabled = false; btn.textContent = '登录'; }
+            } catch (e) {
+                errorEl.textContent = '网络错误，请检查连接';
+                errorEl.style.display = 'block';
+                console.error('登录错误:', e);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '登录';
+            }
         }
 
         function doLogout() {
-            localStorage.removeItem('editor_login_mode');
-            document.getElementById('loginOverlay').style.display = 'flex'; document.getElementById('mainContent').style.display = 'none';
-            sessionToken = null; currentUser = null; isTokenMode = false; fileSha = null; notifySha = null;
-            document.getElementById('passwordInput').value = ''; document.getElementById('tokenInput').value = '';
+            sessionToken = null;
+            currentUser = null;
+            isTokenMode = false;
+            fileSha = null;
+            notifySha = null;
+            document.getElementById('loginOverlay').style.display = 'flex';
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('tokenInput').value = '';
+            checkRememberedLogin();
         }
 
         // ============================================================
         // 事件绑定
         // ============================================================
         document.getElementById('loginBtn').addEventListener('click', doLogin);
-        document.getElementById('passwordInput').addEventListener('keydown', function(e) { if (e.key === 'Enter' && loginMode === 'account') doLogin(); });
-        document.getElementById('usernameInput').addEventListener('keydown', function(e) { if (e.key === 'Enter' && loginMode === 'account') doLogin(); });
-        document.getElementById('tokenInput').addEventListener('keydown', function(e) { if (e.key === 'Enter' && loginMode === 'token') doLogin(); });
-        document.getElementById('logoutBtn').addEventListener('click', function() { showConfirmModal('退出', '确定退出编辑吗？未保存的更改将丢失。', function(ok) { if (ok) doLogout(); }); });
-        document.getElementById('saveBtn').addEventListener('click', async function() { var btn = document.getElementById('saveBtn'); btn.disabled = true; btn.textContent = '保存中...'; try { await saveToGitHub(); showToast('保存成功！'); } catch (e) { showToast('保存失败：' + e.message); } finally { btn.disabled = false; btn.textContent = '保存配置'; } });
+
+        document.getElementById('passwordInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && loginMode === 'account') doLogin();
+        });
+        document.getElementById('usernameInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && loginMode === 'account') doLogin();
+        });
+        document.getElementById('tokenInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && loginMode === 'token') doLogin();
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            showConfirmModal('退出', '确定退出编辑吗？未保存的更改将丢失。', function(ok) {
+                if (ok) doLogout();
+            });
+        });
+
+        document.getElementById('saveBtn').addEventListener('click', async function() {
+            var btn = document.getElementById('saveBtn');
+            btn.disabled = true;
+            btn.textContent = '保存中...';
+            try {
+                await saveToGitHub();
+                showToast('保存成功！');
+            } catch (e) {
+                showToast('保存失败：' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '保存配置';
+            }
+        });
 
         document.getElementById('uploadBtn').addEventListener('click', function() {
-            var inp = document.createElement('input'); inp.type = 'file';
-            inp.onchange = async function(e) { if (!e.target.files[0]) return; var file = e.target.files[0]; var statusEl = document.getElementById('uploadStatus'); statusEl.textContent = '正在上传：' + file.name + ' ...'; statusEl.className = 'upload-status loading'; try { var fn = await uploadFileDirect(file); statusEl.textContent = '上传完成'; statusEl.className = 'upload-status success'; showUploadResultModal(file.name, fn); setTimeout(function() { statusEl.textContent = ''; statusEl.className = 'upload-status'; }, 3000); } catch (err) { statusEl.textContent = '上传失败：' + err.message; statusEl.className = 'upload-status error'; setTimeout(function() { statusEl.textContent = ''; statusEl.className = 'upload-status'; }, 3000); } };
+            var inp = document.createElement('input');
+            inp.type = 'file';
+            inp.onchange = async function(e) {
+                if (!e.target.files[0]) return;
+                var file = e.target.files[0];
+                var statusEl = document.getElementById('uploadStatus');
+                statusEl.textContent = '正在上传：' + file.name + ' ...';
+                statusEl.className = 'upload-status loading';
+                try {
+                    var fn = await uploadFileDirect(file);
+                    statusEl.textContent = '上传完成';
+                    statusEl.className = 'upload-status success';
+                    showUploadResultModal(file.name, fn);
+                    setTimeout(function() { statusEl.textContent = '';
+                        statusEl.className = 'upload-status'; }, 3000);
+                } catch (err) {
+                    statusEl.textContent = '上传失败：' + err.message;
+                    statusEl.className = 'upload-status error';
+                    setTimeout(function() { statusEl.textContent = '';
+                        statusEl.className = 'upload-status'; }, 3000);
+                }
+            };
             inp.click();
         });
 
-        document.getElementById('addGroupBtn').addEventListener('click', function() { showTextModal('添加分组', '', function(val) { if (!val) return; if (groupOrder.indexOf(val) !== -1) { showToast('分组名称已存在'); return; } groupOrder.push(val); renderGroups(); renderApps(); }); });
+        document.getElementById('addGroupBtn').addEventListener('click', function() {
+            showTextModal('添加分组', '', function(val) {
+                if (!val) return;
+                if (groupOrder.indexOf(val) !== -1) { showToast('分组名称已存在'); return; }
+                groupOrder.push(val);
+                renderGroups();
+                renderApps();
+            });
+        });
+
         document.getElementById('addCarouselBtn').addEventListener('click', openAddCarouselModal);
         document.getElementById('addAppBtn').addEventListener('click', openAddAppModal);
         document.getElementById('addNotifyBtn').addEventListener('click', openAddNotifyModal);
 
-        function init() { switchLoginMode('account'); checkRememberedLogin(); }
+        // ============================================================
+        // 初始化
+        // ============================================================
+        function init() {
+            switchLoginMode('account');
+            checkRememberedLogin();
+        }
         init();
     </script>
 </body>
