@@ -1,7 +1,6 @@
 group
 [g=暑假专区]
 [g=班级应用]
-[g=系统应用]
 pic
 [p=https://share-text.org/api/imgUrlV2?text=share-text-uploads/2026-8-7/a97e9b14-1e2a-4d21-b79b-b7640a7c9a87-____________.jpg l=https://wj.qq.com/s2/27530424/kcmp/]
 app
