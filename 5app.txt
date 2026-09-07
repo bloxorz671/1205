@@ -9,3 +9,4 @@ app
 [n=物理-九年级-电子教材预习（可预览下载） p=pdf.jpg l=https://luckynum.top/九年级物理课本-全一册.pdf g=电子教材]
 [n=九年级上册英语课本听力录音 p=audio.jpg l=https://luckynum.top/h1_九年级上册 课文录音.html g=电子教材]
 [n=九上历史第三单元【新授课】.pptx p=ppt.jpg l=fiveappfile/九上历史第三单元【新授课】.pptx g=历史课件]
+[n=物理课件【密码：1234】 p=ppt.jpg l=https://wwbny.lanzoue.com/b00ybdtgkf g=物理课件]
