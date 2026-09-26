@@ -12,3 +12,4 @@ app
 [n=一张关于语文作文的图片 p=fiveappfile/screenshotnoscale38a3f663-7bdb-41db-8844-9099d2518bde.png l=fiveappfile/screenshotnoscale38a3f663-7bdb-41db-8844-9099d2518bde.png g=乱七八糟的资料]
 [n=诗词三首ppt p=ppt.jpg l=fiveappfile/14课诗词三首》.pptx g=乱七八糟的资料]
 [n=《团结就是力量》（演唱）.mp3 p=audio.jpg l=fiveappfile/《团结就是力量》（演唱）.mp3 g=乱七八糟的资料]
+[n=早读内容 p=fiveappfile/chrome_screenshot_2026年9月26日 GMT+08_00 11_53_13.png l=fiveappfile/chrome_screenshot_2026年9月26日 GMT+08_00 11_53_13.png g=乱七八糟的资料]
