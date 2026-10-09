@@ -16,3 +16,4 @@ app
 [n=《团结就是力量》（演唱）.mp3 p=audio.jpg l=fiveappfile/《团结就是力量》（演唱）.mp3 g=乱七八糟的资料]
 [n=早读内容 p=fiveappfile/chrome_screenshot_2026年9月26日 GMT+08_00 11_53_13.png l=fiveappfile/chrome_screenshot_2026年9月26日 GMT+08_00 11_53_13.png g=乱七八糟的资料]
 [n=通用文件收集 p=null.jpg l=https://f.wps.cn/g/Vs3xXhC3/ g=班级应用]
+[n=周报U4 p=pdf.jpg l=fiveappfile/扫描全能王2026-10-09 17_11_49.pdf g=乱七八糟的资料]
