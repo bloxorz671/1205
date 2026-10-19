@@ -5,9 +5,9 @@ group
 pic
 app
 [n=胜利之舞.mp4 p=video.jpg l=fiveappfile/胜利之舞.mp4 g=乱七八糟的资料]
+[n=大课间安排 p=fiveappfile/照片1.jpg l=fiveappfile/照片1.jpg g=乱七八糟的资料]
 [n=化学-九年级上册-电子教材预习（可下载可预览） p=pdf.jpg l=https://luckynum.top/化学-九年级上册-电子教材预习.pdf g=电子教材]
 [n=物理-九年级-电子教材预习（可预览下载） p=pdf.jpg l=https://luckynum.top/九年级物理课本-全一册.pdf g=电子教材]
 [n=九年级上册英语课本听力录音 p=audio.jpg l=https://luckynum.top/h1_九年级上册 课文录音.html g=电子教材]
 [n=早读内容 p=fiveappfile/chrome_screenshot_2026年9月26日 GMT+08_00 11_53_13.png l=fiveappfile/chrome_screenshot_2026年9月26日 GMT+08_00 11_53_13.png g=乱七八糟的资料]
 [n=通用文件收集 p=null.jpg l=https://f.wps.cn/g/Vs3xXhC3/ g=班级应用]
-[n=周报U4 p=pdf.jpg l=fiveappfile/扫描全能王2026-10-09 17_11_49.pdf g=乱七八糟的资料]
