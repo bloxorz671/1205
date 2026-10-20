@@ -4,7 +4,8 @@ group
 [g=班级应用]
 pic
 app
-[n=胜利之舞.mp4 p=video.jpg l=fiveappfile/胜利之舞.mp4 g=乱七八糟的资料]
+[n=校运会开幕式舞蹈-参考视频720P.mp4 p=video.jpg l=fiveappfile/校运会开幕式舞蹈-参考视频720P.mp4 g=乱七八糟的资料]
+[n=校运会开幕式音频-1-初三五班-1.flac p=audio.jpg l=fiveappfile/校运会开幕式音频-1-初三五班-1.flac g=乱七八糟的资料]
 [n=大课间安排 p=fiveappfile/照片1.jpg l=fiveappfile/照片1.jpg g=乱七八糟的资料]
 [n=化学-九年级上册-电子教材预习（可下载可预览） p=pdf.jpg l=https://luckynum.top/化学-九年级上册-电子教材预习.pdf g=电子教材]
 [n=物理-九年级-电子教材预习（可预览下载） p=pdf.jpg l=https://luckynum.top/九年级物理课本-全一册.pdf g=电子教材]
