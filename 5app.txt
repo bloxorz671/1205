@@ -4,6 +4,7 @@ group
 [g=班级应用]
 pic
 app
+[n=【镜像学习】校运会开幕式舞蹈-参考视频720P.mp4 p=video.jpg l=fiveappfile/【镜像】校运会开幕式舞蹈-参考视频720P.mp4 g=乱七八糟的资料]
 [n=校运会开幕式舞蹈-参考视频720P.mp4 p=video.jpg l=fiveappfile/校运会开幕式舞蹈-参考视频720P.mp4 g=乱七八糟的资料]
 [n=校运会开幕式音频-1-初三五班-1.flac p=audio.jpg l=fiveappfile/校运会开幕式音频-1-初三五班-1.flac g=乱七八糟的资料]
 [n=大课间安排 p=fiveappfile/照片1.jpg l=fiveappfile/照片1.jpg g=乱七八糟的资料]
