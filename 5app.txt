@@ -5,12 +5,11 @@ group
 [g=班级应用]
 pic
 app
-[n=【有变更】 镜像-新-校运会开幕式舞蹈-参考视频.mp4 p=video.jpg l=fiveappfile/镜像-新-校运会开幕式舞蹈-参考视频.mp4 g=校运会]
 [n=大课间安排 p=fiveappfile/照片1.jpg l=fiveappfile/照片1.jpg g=乱七八糟的资料]
 [n=化学-九年级上册-电子教材预习（可下载可预览） p=pdf.jpg l=https://luckynum.top/化学-九年级上册-电子教材预习.pdf g=电子教材]
 [n=物理-九年级-电子教材预习（可预览下载） p=pdf.jpg l=https://luckynum.top/九年级物理课本-全一册.pdf g=电子教材]
 [n=九年级上册英语课本听力录音 p=audio.jpg l=https://luckynum.top/h1_九年级上册 课文录音.html g=电子教材]
 [n=早读内容 p=fiveappfile/chrome_screenshot_2026年9月26日 GMT+08_00 11_53_13.png l=fiveappfile/chrome_screenshot_2026年9月26日 GMT+08_00 11_53_13.png g=乱七八糟的资料]
 [n=通用文件收集 p=null.jpg l=https://f.wps.cn/g/Vs3xXhC3/ g=班级应用]
-[n=【有变更】新新新新-校运会开幕式舞蹈-音频.flac p=audio.jpg l=fiveappfile/新新新新-校运会开幕式舞蹈-参考视频.flac g=校运会]
 [n=开幕式站位 p=fiveappfile/新新新.png l=fiveappfile/新新新.png g=校运会]
+[n=【最新无人声】校运会开幕式参考视频 p=video.jpg l=fiveappfile/mmexport1792797323900.mp4 g=校运会]
