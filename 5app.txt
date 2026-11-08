@@ -1,8 +1,9 @@
 group
-[g=班级应用]
 [g=乱七八糟的资料]
+[g=班级应用]
 [g=电子教材]
 pic
+[p=fiveappfile/IMG_20261108_202524.png l=https://weixin.qq.com/sph/AFzuaP8vB1]
 app
 [n=物理期中考试双向细目表.docx p=word.jpg l=fiveappfile/物理期中考试双向细目表.docx g=乱七八糟的资料]
 [n=大课间安排 p=fiveappfile/照片1.jpg l=fiveappfile/照片1.jpg g=乱七八糟的资料]
